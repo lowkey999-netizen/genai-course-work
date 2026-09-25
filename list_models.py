@@ -1,5 +1,6 @@
 """Which models can my key use?  Run:  uv run python list_models.py"""
 import os
+
 from dotenv import load_dotenv
 from openai import OpenAI
 

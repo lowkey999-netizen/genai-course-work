@@ -1,5 +1,6 @@
 """Session 2 — your first LLM call. Run with:  uv run python hello.py"""
 import os
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
