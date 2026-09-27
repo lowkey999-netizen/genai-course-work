@@ -1,4 +1,5 @@
 """Session 9b helpers — tokens, cost, embeddings. Imported by the notebook and the test."""
+
 from __future__ import annotations
 
 import json
@@ -34,13 +35,15 @@ def show_tokens(text: str, encoding: str = ENCODING) -> list[str]:
 # Indicative price cards, USD per 1M tokens (edit these — prices change).
 PRICE_CARDS = {
     "groq gpt-oss-20b": {"input": 0.10, "output": 0.50},
-    "frontier small":   {"input": 0.15, "output": 0.60},
-    "frontier large":   {"input": 2.50, "output": 10.00},
+    "frontier small": {"input": 0.15, "output": 0.60},
+    "frontier large": {"input": 2.50, "output": 10.00},
 }
 USD_TO_INR = 84.0
 
 
-def cost_inr(prompt_tokens: int, completion_tokens: int, card: str, calls: int = 1) -> float:
+def cost_inr(
+    prompt_tokens: int, completion_tokens: int, card: str, calls: int = 1
+) -> float:
     p = PRICE_CARDS[card]
     usd = (prompt_tokens * p["input"] + completion_tokens * p["output"]) / 1_000_000
     return round(usd * USD_TO_INR * calls, 4)
@@ -59,12 +62,25 @@ def ollama_client() -> OpenAI:
 
 def usage_for(client: OpenAI, model: str, text: str) -> tuple[int, int]:
     """Send text; return (prompt_tokens, completion_tokens) as the model counted them."""
-    r = client.chat.completions.create(model=model, max_tokens=16, messages=[{"role": "user", "content": text}])
+    r = client.chat.completions.create(
+        model=model, max_tokens=16, messages=[{"role": "user", "content": text}]
+    )
     return r.usage.prompt_tokens, r.usage.completion_tokens
 
 
 # ---------------------------------------------------------------- embeddings
-WORDS = ["loan", "EMI", "interest", "credit score", "bank", "hospital", "doctor", "prescription", "cricket", "monsoon"]
+WORDS = [
+    "loan",
+    "EMI",
+    "interest",
+    "credit score",
+    "bank",
+    "hospital",
+    "doctor",
+    "prescription",
+    "cricket",
+    "monsoon",
+]
 CACHE = Path(__file__).with_name("embeddings_10words.json")
 
 
