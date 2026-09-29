@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>From Text to Vector to PCA: A Visual First-Principles Journey</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --background: #090d16;
+      --card: #0f172a;
+      --card-inner: #162036;
+      --border: #1e293b;
+      --border-highlight: #334155;
+      --foreground: #f8fafc;
+      --muted-foreground: #94a3b8;
+    }
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+    }
+    input[type=range] {
+      accent-color: #6366f1;
+    }
+  </style>
+</head>
+<body class="antialiased p-4 md:p-8 font-sans selection:bg-indigo-500/30">
+  <div class="max-w-5xl mx-auto space-y-8">
+
+    <!-- Hero Header -->
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="flex items-center justify-between flex-wrap gap-4 relative z-10">
+        <div>
+          <span class="text-xs uppercase tracking-widest font-bold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/30">First Principles Laboratory</span>
+          <h1 class="text-2xl md:text-3xl font-extrabold mt-3 text-white tracking-tight">How Text Becomes Space: Embeddings, SVD & PCA</h1>
+          <p class="text-[var(--muted-foreground)] text-sm mt-2 max-w-2xl leading-relaxed">
+            Follow the physical and mathematical transformation of a single word <span class="text-indigo-400 font-semibold">"king"</span> through tokenization, transformer attention, high-dimensional vector geometry, SVD matrix decomposition, and 2D PCA shadow projection.
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-6 pt-6 border-t border-[var(--border)] relative z-10">
+        <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn px-3 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 text-white transition text-center shadow-lg shadow-indigo-600/30 border border-indigo-500/40">1. Token to Numbers</button>
+        <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn px-3 py-2.5 text-xs font-bold rounded-xl bg-[var(--card-inner)] text-[var(--muted-foreground)] border border-[var(--border)] hover:border-[var(--border-highlight)] hover:text-white transition text-center">2. What is a Vector?</button>
+        <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn px-3 py-2.5 text-xs font-bold rounded-xl bg-[var(--card-inner)] text-[var(--muted-foreground)] border border-[var(--border)] hover:border-[var(--border-highlight)] hover:text-white transition text-center">3. Inside Nomic</button>
+        <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn px-3 py-2.5 text-xs font-bold rounded-xl bg-[var(--card-inner)] text-[var(--muted-foreground)] border border-[var(--border)] hover:border-[var(--border-highlight)] hover:text-white transition text-center">4. Embedding Space</button>
+        <button onclick="switchTab(5)" id="tab-btn-5" class="tab-btn px-3 py-2.5 text-xs font-bold rounded-xl bg-[var(--card-inner)] text-[var(--muted-foreground)] border border-[var(--border)] hover:border-[var(--border-highlight)] hover:text-white transition text-center col-span-2 sm:col-span-1">5. PCA & SVD Camera</button>
+      </div>
+    </div>
+
+    <!-- ==================== STAGE 1: TEXT TO NUMBERS ==================== -->
+    <div id="stage-1" class="stage-view space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4 shadow-xl">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/30">1</span>
+          <h2 class="text-lg font-bold text-white">Step 1: Text &rarr; Token ID (The Vocabulary Lookup)</h2>
+        </div>
+        <p class="text-sm text-[var(--muted-foreground)] leading-relaxed">
+          The computer does not know what letters are. Before the Nomic neural network can touch the word <span class="font-mono text-indigo-400">"king"</span>, it must be mapped to a clean integer using a pre-compiled lookup dictionary.
+        </p>
+
+        <!-- Interactive Tokenizer Demonstration -->
+        <div class="bg-[var(--card-inner)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+          <div class="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Try typing words to see their Token IDs:</div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="setTokenDemo('king')" class="px-3 py-1.5 text-xs font-mono rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/25 transition">"king"</button>
+            <button onclick="setTokenDemo('queen')" class="px-3 py-1.5 text-xs font-mono rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/25 transition">"queen"</button>
+            <button onclick="setTokenDemo('kingdom')" class="px-3 py-1.5 text-xs font-mono rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/25 transition">"kingdom"</button>
+            <button onclick="setTokenDemo('personal loan')" class="px-3 py-1.5 text-xs font-mono rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/25 transition">"personal loan"</button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div class="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl space-y-1">
+              <div class="text-[11px] text-[var(--muted-foreground)] font-semibold">1. Raw Text</div>
+              <div id="demo-raw-text" class="text-lg font-bold text-white font-mono">"king"</div>
+            </div>
+            <div class="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl space-y-1">
+              <div class="text-[11px] text-[var(--muted-foreground)] font-semibold">2. Tokenizer Slicing</div>
+              <div id="demo-tokens-split" class="text-sm font-semibold text-emerald-400 font-mono">['king']</div>
+            </div>
+            <div class="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl space-y-1">
+              <div class="text-[11px] text-[var(--muted-foreground)] font-semibold">3. Vocabulary ID (Integer)</div>
+              <div id="demo-token-ids" class="text-lg font-bold text-indigo-400 font-mono">[3528]</div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-indigo-950/30 border border-indigo-500/30 rounded-xl text-xs space-y-2 text-[var(--muted-foreground)]">
+            <div class="font-bold text-indigo-300 text-sm">What just happened?</div>
+            <p>
+              The Nomic tokenizer has a fixed vocabulary table containing ~30,522 token IDs. 
+              The word <span class="text-indigo-400 font-mono">"king"</span> matches entry index <span class="font-mono text-indigo-400">3528</span>. 
+              At this point, <span class="font-bold text-white">the number 3528 has ZERO semantic meaning</span>. It is just a row number in a giant table—exactly like an ID badge at a factory door!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STAGE 2: WHAT IS A VECTOR? ==================== -->
+    <div id="stage-2" class="stage-view hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4 shadow-xl">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/30">2</span>
+          <h2 class="text-lg font-bold text-white">Step 2: What the Hell is a Vector? (Geometrically & Mathematically)</h2>
+        </div>
+        <p class="text-sm text-[var(--muted-foreground)] leading-relaxed">
+          People throw around the word "vector" like it's magic. Stripped of hype:
+          <strong>A vector is just an ordered list of numbers that describes an arrow pointing from the origin (0, 0, 0) to a specific destination point in space.</strong>
+        </p>
+
+        <!-- 3D Interactive Vector Sandbox -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[var(--card-inner)] border border-[var(--border)] rounded-xl p-5">
+          <div class="space-y-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Build a 3D Toy Vector</h3>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              Imagine our embedding model only had 3 dimensions: <em>Royalty</em>, <em>Masculinity</em>, and <em>Power</em>. Drag the sliders to change where the arrow points in 3D space:
+            </p>
+
+            <div class="space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-slate-300">Dimension 1: Royalty ($X$)</span>
+                  <span id="vec-val-x" class="font-mono text-indigo-400 font-bold">0.90</span>
+                </div>
+                <input type="range" id="vec-slider-x" min="-1" max="1" step="0.05" value="0.90" oninput="updateVectorToy()" class="w-full bg-slate-800">
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-slate-300">Dimension 2: Masculinity ($Y$)</span>
+                  <span id="vec-val-y" class="font-mono text-emerald-400 font-bold">0.80</span>
+                </div>
+                <input type="range" id="vec-slider-y" min="-1" max="1" step="0.05" value="0.80" oninput="updateVectorToy()" class="w-full bg-slate-800">
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-slate-300">Dimension 3: Power / Authority ($Z$)</span>
+                  <span id="vec-val-z" class="font-mono text-amber-400 font-bold">0.95</span>
+                </div>
+                <input type="range" id="vec-slider-z" min="-1" max="1" step="0.05" value="0.95" oninput="updateVectorToy()" class="w-full bg-slate-800">
+              </div>
+            </div>
+
+            <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-xl space-y-1">
+              <div class="text-[11px] text-[var(--muted-foreground)] font-semibold">The Mathematical Vector $\vec{v}$:</div>
+              <div id="vector-toy-output" class="font-mono text-sm font-bold text-emerald-400">[0.90, 0.80, 0.95]</div>
+              <div class="text-[10px] text-[var(--muted-foreground)] mt-1">Magnitude (Length): <span id="vector-mag" class="font-mono text-white">1.54</span></div>
+            </div>
+          </div>
+
+          <!-- 3D Vector Canvas Viewport -->
+          <div class="flex flex-col items-center justify-center relative">
+            <canvas id="vectorCanvas" width="340" height="280" class="block rounded-xl cursor-grab active:cursor-grabbing border border-slate-800 bg-[#070b14] shadow-inner"></canvas>
+            <div class="text-[10px] text-[var(--muted-foreground)] mt-2 text-center">
+              Drag to spin 3D space. The <span class="text-emerald-400 font-semibold">Green Arrow</span> is your vector pointing from (0,0,0) to your coordinate!
+            </div>
+          </div>
+        </div>
+
+        <!-- What they DO and DO NOT represent -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div class="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-xl space-y-1.5">
+            <div class="font-bold text-emerald-400 text-sm">What the numbers DO represent:</div>
+            <ul class="list-disc pl-4 space-y-1 text-slate-300">
+              <li>A coordinate along a specific direction learned during training.</li>
+              <li>A relative position compared to every other word in the dictionary.</li>
+              <li>A direction and length (an arrow in geometric space).</li>
+            </ul>
+          </div>
+          <div class="p-4 bg-rose-950/20 border border-rose-500/30 rounded-xl space-y-1.5">
+            <div class="font-bold text-rose-400 text-sm">What the numbers DO NOT represent:</div>
+            <ul class="list-disc pl-4 space-y-1 text-slate-300">
+              <li>They are <strong>not</strong> ASCII letters or character codes.</li>
+              <li>They are <strong>not</strong> human-labeled tags (no one named Dimension 42 "Royalty").</li>
+              <li>Individual numbers cannot be interpreted in isolation; only their combined geometry matters.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STAGE 3: INSIDE NOMIC ==================== -->
+    <div id="stage-3" class="stage-view hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4 shadow-xl">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-purple-500/20 text-purple-400 font-bold text-xs flex items-center justify-center border border-purple-500/30">3</span>
+          <h2 class="text-lg font-bold text-white">Step 3: How Nomic Produces the 768-D Vector (The Transformer Pipeline)</h2>
+        </div>
+        <p class="text-sm text-[var(--muted-foreground)] leading-relaxed">
+          How does the number <span class="font-mono text-indigo-400">3528</span> become a 768-dimensional coordinate list? Here is the exact physical journey inside the neural network:
+        </p>
+
+        <!-- The Pipeline Interactive Diagram -->
+        <div class="space-y-4 bg-[var(--card-inner)] border border-[var(--border)] rounded-xl p-5 text-xs">
+          <!-- Step A -->
+          <div class="flex items-start gap-4 p-3.5 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+            <div class="px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold font-mono">1. Lookup</div>
+            <div class="space-y-1">
+              <div class="font-bold text-white text-sm">The Initial Embedding Matrix Lookup (Row 3528)</div>
+              <p class="text-[var(--muted-foreground)]">
+                The model holds a giant spreadsheet of size <span class="font-mono text-indigo-300">30,522 &times; 768</span>. 
+                Token ID 3528 acts as an index: it simply copies <strong>Row #3528</strong> out of the spreadsheet. This gives an initial raw vector of 768 numbers.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step B -->
+          <div class="flex items-start gap-4 p-3.5 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+            <div class="px-2.5 py-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold font-mono">2. Attention</div>
+            <div class="space-y-1">
+              <div class="font-bold text-white text-sm">Multi-Head Self-Attention Layers (Mixing the Context)</div>
+              <p class="text-[var(--muted-foreground)]">
+                If the input is "the king of England", the word "king" must borrow meaning from "England". 
+                The 12 transformer layers calculate <strong>Attention Weights</strong>: matrices of numbers asking <em>"how much does word A care about word B?"</em>. 
+                The vector is updated 12 times through matrix multiplication and non-linear activations.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step C -->
+          <div class="flex items-start gap-4 p-3.5 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+            <div class="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold font-mono">3. Pooling</div>
+            <div class="space-y-1">
+              <div class="font-bold text-white text-sm">Mean Pooling (Collapsing into One Vector)</div>
+              <p class="text-[var(--muted-foreground)]">
+                If you fed a 10-word sentence into Nomic, you now have 10 vectors of 768 numbers each. 
+                Nomic averages them together element-by-element (<span class="font-mono">Mean Pooling</span>) and normalizes the vector length to 1.0. 
+                <strong>Result: Exactly one single vector of 768 floats!</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl space-y-2">
+          <div class="text-xs font-semibold text-[var(--muted-foreground)] uppercase">What the Real Nomic Vector Actually Looks Like (First 10 of 768):</div>
+          <div class="p-3 bg-[#070b14] rounded-lg font-mono text-xs text-sky-400 overflow-x-auto border border-slate-800">
+            [-0.0381, 0.0512, -0.0194, 0.0827, -0.0049, 0.0215, -0.0743, 0.0118, 0.0632, -0.0298, ... +758 more numbers]
+          </div>
+          <p class="text-[11px] text-[var(--muted-foreground)]">
+            Notice that the numbers are all small decimals between $-1.0$ and $+1.0$. This is because the vector has been normalized so its length is $1.0$ (a unit vector on a 768-dimensional sphere).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STAGE 4: EMBEDDING SPACE ==================== -->
+    <div id="stage-4" class="stage-view hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4 shadow-xl">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-500/30">4</span>
+          <h2 class="text-lg font-bold text-white">Step 4: What is an Embedding Space? (Geometry & Vector Math)</h2>
+        </div>
+        <p class="text-sm text-[var(--muted-foreground)] leading-relaxed">
+          An <strong>Embedding Space</strong> is simply a coordinate system where words are positioned such that 
+          <strong>semantic similarity = geometric proximity</strong> (small angle or short distance between arrows).
+        </p>
+
+        <!-- Interactive Vector Arithmetic Simulation -->
+        <div class="bg-[var(--card-inner)] border border-[var(--border)] rounded-xl p-5 space-y-5">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400">The Famous Vector Arithmetic</h3>
+              <p class="text-xs text-[var(--muted-foreground)]">Click the equation to watch the vectors physically add and subtract in space!</p>
+            </div>
+            <button onclick="runVectorMathAnimation()" class="px-4 py-2 text-xs font-bold rounded-xl bg-amber-500 text-slate-950 hover:bg-amber-400 transition shadow-lg shadow-amber-500/20 font-mono">
+              Execute: King - Man + Woman = Queen
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div class="space-y-3 text-xs">
+              <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+                <div class="font-bold text-indigo-400 font-mono mb-1">&vec;King = [0.90, 0.80, 0.95]</div>
+                <div class="text-[11px] text-[var(--muted-foreground)]">(High Royalty, High Masculinity, High Power)</div>
+              </div>
+              <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+                <div class="font-bold text-rose-400 font-mono mb-1">- &vec;Man = [-0.10, -0.75, -0.20]</div>
+                <div class="text-[11px] text-[var(--muted-foreground)]">(Subtracting the concept of "male human")</div>
+              </div>
+              <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+                <div class="font-bold text-emerald-400 font-mono mb-1">+ &vec;Woman = [0.10, -0.80, 0.20]</div>
+                <div class="text-[11px] text-[var(--muted-foreground)]">(Adding the concept of "female human")</div>
+              </div>
+              <div class="p-3 bg-amber-950/20 border border-amber-500/30 rounded-xl">
+                <div class="font-bold text-amber-400 font-mono text-sm mb-1">= &vec;Queen ≈ [0.90, -0.75, 0.95]</div>
+                <div class="text-[11px] text-slate-300">The resulting coordinate lands right next to the pre-existing vector for "Queen"!</div>
+              </div>
+            </div>
+
+            <!-- Canvas Visualization -->
+            <div class="flex flex-col items-center">
+              <canvas id="mathCanvas" width="340" height="260" class="block rounded-xl border border-slate-800 bg-[#070b14] shadow-inner"></canvas>
+              <div id="math-status" class="text-[11px] text-amber-400 font-mono mt-2 font-semibold">Ready. Click execute above!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STAGE 5: PCA & SVD ==================== -->
+    <div id="stage-5" class="stage-view hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4 shadow-xl">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-full bg-rose-500/20 text-rose-400 font-bold text-xs flex items-center justify-center border border-rose-500/30">5</span>
+          <h2 class="text-lg font-bold text-white">Step 5: How SVD Powers PCA (The Dimensionality Reduction Engine)</h2>
+        </div>
+        <p class="text-sm text-[var(--muted-foreground)] leading-relaxed">
+          Now we arrive at the core mystery. You have 10 words, each with 768 numbers. Your computer monitor only has 2 axes ($X$ and $Y$). 
+          <strong>How do we drop 766 dimensions without destroying all the clustering information?</strong>
+        </p>
+
+        <!-- SVD Interactive Visualizer -->
+        <div class="bg-[var(--card-inner)] border border-[var(--border)] rounded-xl p-5 space-y-6">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-rose-400">Interactive SVD Step-by-Step</h3>
+              <p class="text-xs text-[var(--muted-foreground)]">Watch the data get centered, rotated by SVD, and flattened onto the Principal Component axis!</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="setSvdStep(1)" id="svd-step-btn-1" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-rose-600 text-white transition shadow-lg shadow-rose-600/30 border border-rose-500/40">1. Center Data</button>
+              <button onclick="setSvdStep(2)" id="svd-step-btn-2" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-white transition">2. SVD Find Axis</button>
+              <button onclick="setSvdStep(3)" id="svd-step-btn-3" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-white transition">3. Project to 1D / 2D</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <!-- Canvas -->
+            <div class="flex flex-col items-center">
+              <canvas id="svdCanvas" width="360" height="280" class="block rounded-xl border border-slate-800 bg-[#070b14] shadow-inner"></canvas>
+              <div id="svd-canvas-caption" class="text-[11px] text-[var(--muted-foreground)] mt-2 text-center font-mono">
+                Original data points scattered in space with a clear diagonal tilt.
+              </div>
+            </div>
+
+            <!-- Mathematical Explanation -->
+            <div class="space-y-4 text-xs">
+              <div id="svd-explanation-box" class="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl space-y-2">
+                <div class="font-bold text-rose-400 text-sm" id="svd-box-title">Step 1: Subtract the Mean (Center the Cloud)</div>
+                <p class="text-[var(--muted-foreground)] leading-relaxed" id="svd-box-desc">
+                  Look at line 94 in <span class="font-mono text-indigo-300">tokens_utils.py</span>: <br>
+                  <code class="text-rose-400 font-mono">xc = x - x.mean(axis=0)</code><br>
+                  Before finding the spread of the data, we calculate the average center of all points and slide the whole cloud so its center sits right at (0, 0).
+                </p>
+              </div>
+
+              <!-- SVD Formula Box -->
+              <div class="p-4 bg-purple-950/20 border border-purple-500/30 rounded-xl space-y-2">
+                <div class="font-bold text-purple-300 text-xs uppercase tracking-wider">The SVD Formula: $X = U \cdot \Sigma \cdot V^T$</div>
+                <div class="grid grid-cols-3 gap-2 text-center font-mono text-[11px]">
+                  <div class="p-2 bg-[var(--card)] rounded-lg border border-[var(--border)]">
+                    <span class="text-indigo-400 font-bold">$U$</span><br>
+                    <span class="text-[9px] text-[var(--muted-foreground)]">Word positions along new axes</span>
+                  </div>
+                  <div class="p-2 bg-[var(--card)] rounded-lg border border-[var(--border)]">
+                    <span class="text-amber-400 font-bold">$\Sigma$ (Sigma)</span><br>
+                    <span class="text-[9px] text-[var(--muted-foreground)]">Importance / spread of each axis</span>
+                  </div>
+                  <div class="p-2 bg-[var(--card)] rounded-lg border border-[var(--border)]">
+                    <span class="text-emerald-400 font-bold">$V^T$</span><br>
+                    <span class="text-[9px] text-[var(--muted-foreground)]">The directional angles of the camera</span>
+                  </div>
+                </div>
+                <p class="text-[10px] text-[var(--muted-foreground)] pt-1">
+                  Look at line 96 in <span class="font-mono text-indigo-300">tokens_utils.py</span>: <br>
+                  <code class="text-emerald-400 font-mono">return xc @ vt[:2].T</code><br>
+                  We throw away all rows of $V^T$ except the first 2 (<code class="font-mono">vt[:2]</code>)! That single matrix multiplication drops 766 dimensions and gives us our $(x, y)$ coordinates!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- TAB SWITCHER ---
+    function switchTab(num) {
+      document.querySelectorAll('.stage-view').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-indigo-600/30', 'border-indigo-500/40');
+        btn.classList.add('bg-[var(--card-inner)]', 'text-[var(--muted-foreground)]');
+      });
+      document.getElementById('stage-' + num).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-btn-' + num);
+      activeBtn.classList.remove('bg-[var(--card-inner)]', 'text-[var(--muted-foreground)]');
+      activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-indigo-600/30', 'border-indigo-500/40');
+
+      if (num === 2) setTimeout(drawVectorToy, 30);
+      if (num === 4) setTimeout(drawMathCanvasInitial, 30);
+      if (num === 5) setTimeout(() => setSvdStep(currentSvdStep), 30);
+    }
+
+    // --- STAGE 1: TOKENIZER DEMO ---
+    const tokenDict = {
+      'king': { split: "['king']", ids: "[3528]" },
+      'queen': { split: "['queen']", ids: "[4438]" },
+      'kingdom': { split: "['king', 'dom']", ids: "[3528, 1142]" },
+      'personal loan': { split: "['personal', ' loan']", ids: "[3145, 4512]" }
+    };
+
+    function setTokenDemo(word) {
+      document.getElementById('demo-raw-text').innerText = `"${word}"`;
+      document.getElementById('demo-tokens-split').innerText = tokenDict[word].split;
+      document.getElementById('demo-token-ids').innerText = tokenDict[word].ids;
+    }
+
+    // --- STAGE 2: 3D VECTOR TOY ---
+    let vecX = 0.90, vecY = 0.80, vecZ = 0.95;
+    let vRotX = 0.35, vRotY = 0.75;
+    let vDragging = false, vLastX = 0, vLastY = 0;
+
+    const vCanvas = document.getElementById('vectorCanvas');
+    const vCtx = vCanvas.getContext('2d');
+
+    vCanvas.addEventListener('mousedown', e => {
+      vDragging = true; vLastX = e.clientX; vLastY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => vDragging = false);
+    window.addEventListener('mousemove', e => {
+      if (!vDragging) return;
+      vRotY += (e.clientX - vLastX) * 0.01;
+      vRotX += (e.clientY - vLastY) * 0.01;
+      vLastX = e.clientX; vLastY = e.clientY;
+      drawVectorToy();
+    });
+
+    function updateVectorToy() {
+      vecX = parseFloat(document.getElementById('vec-slider-x').value);
+      vecY = parseFloat(document.getElementById('vec-slider-y').value);
+      vecZ = parseFloat(document.getElementById('vec-slider-z').value);
+
+      document.getElementById('vec-val-x').innerText = vecX.toFixed(2);
+      document.getElementById('vec-val-y').innerText = vecY.toFixed(2);
+      document.getElementById('vec-val-z').innerText = vecZ.toFixed(2);
+      document.getElementById('vector-toy-output').innerText = `[${vecX.toFixed(2)}, ${vecY.toFixed(2)}, ${vecZ.toFixed(2)}]`;
+
+      const mag = Math.sqrt(vecX*vecX + vecY*vecY + vecZ*vecZ);
+      document.getElementById('vector-mag').innerText = mag.toFixed(2);
+
+      drawVectorToy();
+    }
+
+    function rotate3D(x, y, z, ax, ay) {
+      const cosX = Math.cos(ax), sinX = Math.sin(ax);
+      const y1 = y * cosX - z * sinX;
+      const z1 = y * sinX + z * cosX;
+
+      const cosY = Math.cos(ay), sinY = Math.sin(ay);
+      const x2 = x * cosY + z1 * sinY;
+      const z2 = -x * sinY + z1 * cosY;
+      return { x: x2, y: y1, z: z2 };
+    }
+
+    function drawVectorToy() {
+      const w = vCanvas.width, h = vCanvas.height;
+      vCtx.clearRect(0, 0, w, h);
+
+      const cx = w / 2, cy = h / 2;
+      const scale = 95;
+
+      // Draw Axes
+      const axes = [
+        { name: "Royalty (X)", x: 1.2, y: 0, z: 0, color: "#818cf8" },
+        { name: "Gender (Y)", x: 0, y: 1.2, z: 0, color: "#34d399" },
+        { name: "Power (Z)", x: 0, y: 0, z: 1.2, color: "#fbbf24" }
+      ];
+
+      axes.forEach(ax => {
+        const r = rotate3D(ax.x, ax.y, ax.z, vRotX, vRotY);
+        vCtx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
+        vCtx.lineWidth = 1;
+        vCtx.beginPath();
+        vCtx.moveTo(cx, cy);
+        vCtx.lineTo(cx + r.x * scale, cy - r.y * scale);
+        vCtx.stroke();
+
+        vCtx.fillStyle = ax.color;
+        vCtx.font = '10px monospace';
+        vCtx.fillText(ax.name, cx + r.x * scale + 4, cy - r.y * scale + 4);
+      });
+
+      // Draw Origin (0,0,0)
+      vCtx.fillStyle = '#64748b';
+      vCtx.beginPath();
+      vCtx.arc(cx, cy, 3, 0, Math.PI * 2);
+      vCtx.fill();
+      vCtx.fillText("(0,0,0)", cx - 35, cy + 12);
+
+      // Draw Vector Arrow
+      const target = rotate3D(vecX, vecY, vecZ, vRotX, vRotY);
+      const endX = cx + target.x * scale;
+      const endY = cy - target.y * scale;
+
+      // Arrow stem with glow
+      vCtx.shadowColor = '#10b981';
+      vCtx.shadowBlur = 8;
+      vCtx.strokeStyle = '#10b981';
+      vCtx.lineWidth = 3;
+      vCtx.beginPath();
+      vCtx.moveTo(cx, cy);
+      vCtx.lineTo(endX, endY);
+      vCtx.stroke();
+      vCtx.shadowBlur = 0;
+
+      // Arrow head dot
+      vCtx.fillStyle = '#34d399';
+      vCtx.beginPath();
+      vCtx.arc(endX, endY, 6, 0, Math.PI * 2);
+      vCtx.fill();
+      vCtx.strokeStyle = '#ffffff';
+      vCtx.lineWidth = 1.5;
+      vCtx.stroke();
+
+      vCtx.fillStyle = '#f8fafc';
+      vCtx.font = 'bold 11px sans-serif';
+      vCtx.fillText(`Vector [${vecX.toFixed(1)}, ${vecY.toFixed(1)}, ${vecZ.toFixed(1)}]`, endX + 8, endY - 4);
+    }
+
+    // --- STAGE 4: VECTOR MATH ANIMATION ---
+    const mCanvas = document.getElementById('mathCanvas');
+    const mCtx = mCanvas.getContext('2d');
+
+    function drawMathCanvasInitial() {
+      const w = mCanvas.width, h = mCanvas.height;
+      mCtx.clearRect(0, 0, w, h);
+
+      // Draw grid
+      mCtx.strokeStyle = 'rgba(71, 85, 105, 0.25)';
+      mCtx.lineWidth = 1;
+      mCtx.beginPath();
+      mCtx.moveTo(w/2, 0); mCtx.lineTo(w/2, h);
+      mCtx.moveTo(0, h/2); mCtx.lineTo(w, h/2);
+      mCtx.stroke();
+
+      const cx = w/2, cy = h/2;
+      const pts = [
+        { name: "King", x: 90, y: -70, color: "#818cf8" },
+        { name: "Man", x: -20, y: -65, color: "#f43f5e" },
+        { name: "Woman", x: -20, y: 75, color: "#10b981" },
+        { name: "Queen", x: 92, y: 70, color: "#fbbf24" }
+      ];
+
+      pts.forEach(p => {
+        mCtx.fillStyle = p.color;
+        mCtx.beginPath();
+        mCtx.arc(cx + p.x, cy + p.y, 6, 0, Math.PI*2);
+        mCtx.fill();
+        mCtx.strokeStyle = '#ffffff';
+        mCtx.lineWidth = 1.5;
+        mCtx.stroke();
+        mCtx.fillStyle = '#f1f5f9';
+        mCtx.font = '11px sans-serif';
+        mCtx.fillText(p.name, cx + p.x + 8, cy + p.y + 4);
+      });
+    }
+
+    function runVectorMathAnimation() {
+      drawMathCanvasInitial();
+      const cx = mCanvas.width / 2, cy = mCanvas.height / 2;
+      const status = document.getElementById('math-status');
+
+      status.innerText = "Step 1: Start at King vector...";
+      setTimeout(() => {
+        mCtx.strokeStyle = '#f43f5e';
+        mCtx.lineWidth = 2;
+        mCtx.setLineDash([4, 4]);
+        mCtx.beginPath();
+        mCtx.moveTo(cx + 90, cy - 70);
+        mCtx.lineTo(cx + 110, cy - 5);
+        mCtx.stroke();
+        status.innerText = "Step 2: Subtracting Man direction...";
+      }, 600);
+
+      setTimeout(() => {
+        mCtx.strokeStyle = '#10b981';
+        mCtx.beginPath();
+        mCtx.moveTo(cx + 110, cy - 5);
+        mCtx.lineTo(cx + 92, cy + 70);
+        mCtx.stroke();
+        mCtx.setLineDash([]);
+        status.innerText = "Step 3: Adding Woman direction = Lands on Queen!";
+      }, 1400);
+    }
+
+    // --- STAGE 5: SVD INTERACTIVE SIMULATOR ---
+    const sCanvas = document.getElementById('svdCanvas');
+    const sCtx = sCanvas.getContext('2d');
+    let currentSvdStep = 1;
+
+    const rawSvdPoints = [
+      { x: 30, y: 40 }, { x: 50, y: 65 }, { x: 80, y: 90 }, { x: 40, y: 35 },
+      { x: 100, y: 110 }, { x: 120, y: 135 }, { x: 70, y: 80 }, { x: 90, y: 105 }
+    ];
+
+    function setSvdStep(step) {
+      currentSvdStep = step;
+      document.querySelectorAll('[id^="svd-step-btn-"]').forEach((btn) => {
+        btn.classList.remove('bg-rose-600', 'text-white', 'shadow-rose-600/30', 'border-rose-500/40');
+        btn.classList.add('bg-[var(--card)]', 'text-[var(--muted-foreground)]');
+      });
+      document.getElementById('svd-step-btn-' + step).classList.remove('bg-[var(--card)]', 'text-[var(--muted-foreground)]');
+      document.getElementById('svd-step-btn-' + step).classList.add('bg-rose-600', 'text-white', 'shadow-rose-600/30', 'border-rose-500/40');
+
+      const title = document.getElementById('svd-box-title');
+      const desc = document.getElementById('svd-box-desc');
+      const caption = document.getElementById('svd-canvas-caption');
+
+      const w = sCanvas.width, h = sCanvas.height;
+      sCtx.clearRect(0, 0, w, h);
+
+      const meanX = rawSvdPoints.reduce((acc, p) => acc + p.x, 0) / rawSvdPoints.length;
+      const meanY = rawSvdPoints.reduce((acc, p) => acc + p.y, 0) / rawSvdPoints.length;
+      const centered = rawSvdPoints.map(p => ({ x: p.x - meanX, y: p.y - meanY }));
+
+      // Dark mode axes
+      sCtx.strokeStyle = 'rgba(71, 85, 105, 0.35)';
+      sCtx.lineWidth = 1;
+      sCtx.beginPath();
+      sCtx.moveTo(w/2, 0); sCtx.lineTo(w/2, h);
+      sCtx.moveTo(0, h/2); sCtx.lineTo(w, h/2);
+      sCtx.stroke();
+
+      if (step === 1) {
+        title.innerText = "Step 1: Center the Data (Subtract the Mean)";
+        desc.innerHTML = `Notice the original cloud was off-center. We compute the mean ($\mu_x=${meanX.toFixed(0)}, \mu_y=${meanY.toFixed(0)}$) and shift the whole cloud so its center of gravity is exactly at (0, 0). Line 94 in <code class="text-indigo-300">tokens_utils.py</code>!`;
+        caption.innerText = "Points centered at (0, 0).";
+
+        centered.forEach(p => {
+          sCtx.fillStyle = '#38bdf8';
+          sCtx.beginPath();
+          sCtx.arc(w/2 + p.x * 1.5, h/2 - p.y * 1.5, 5, 0, Math.PI*2);
+          sCtx.fill();
+        });
+      } else if (step === 2) {
+        title.innerText = "Step 2: SVD Finds the Direction of Maximum Spread (PC1)";
+        desc.innerHTML = `SVD decomposes the centered matrix and outputs <code class="text-emerald-400 font-mono">vt[0]</code>. That is the green dashed line! It represents the single axis where the points are most spread out.`;
+        caption.innerText = "Green line = First Principal Direction (maximum spread).";
+
+        centered.forEach(p => {
+          sCtx.fillStyle = '#38bdf8';
+          sCtx.beginPath();
+          sCtx.arc(w/2 + p.x * 1.5, h/2 - p.y * 1.5, 5, 0, Math.PI*2);
+          sCtx.fill();
+        });
+
+        sCtx.strokeStyle = '#10b981';
+        sCtx.lineWidth = 2.5;
+        sCtx.setLineDash([5, 5]);
+        sCtx.beginPath();
+        sCtx.moveTo(w/2 - 130, h/2 + 130);
+        sCtx.lineTo(w/2 + 130, h/2 - 130);
+        sCtx.stroke();
+        sCtx.setLineDash([]);
+        sCtx.fillStyle = '#34d399';
+        sCtx.font = 'bold 11px sans-serif';
+        sCtx.fillText("PC1 (Maximum Spread Axis)", w/2 + 30, h/2 - 110);
+      } else if (step === 3) {
+        title.innerText = "Step 3: Drop the Perpendicular Dimensions (Projection)";
+        desc.innerHTML = `We project (drop shadows) of all points onto that 1 green axis! All the variation along the perpendicular axis is discarded. We went from 2D &rarr; 1D with almost ZERO loss of structure! This is how PCA goes from 768D &rarr; 2D.`;
+        caption.innerText = "Points projected directly onto PC1 line!";
+
+        sCtx.strokeStyle = '#10b981';
+        sCtx.lineWidth = 2.5;
+        sCtx.beginPath();
+        sCtx.moveTo(w/2 - 130, h/2 + 130);
+        sCtx.lineTo(w/2 + 130, h/2 - 130);
+        sCtx.stroke();
+
+        centered.forEach(p => {
+          const proj = (p.x + p.y) / 2;
+          const px = w/2 + proj * 1.5;
+          const py = h/2 - proj * 1.5;
+
+          sCtx.strokeStyle = 'rgba(244, 63, 94, 0.45)';
+          sCtx.lineWidth = 1;
+          sCtx.setLineDash([2, 2]);
+          sCtx.beginPath();
+          sCtx.moveTo(w/2 + p.x * 1.5, h/2 - p.y * 1.5);
+          sCtx.lineTo(px, py);
+          sCtx.stroke();
+          sCtx.setLineDash([]);
+
+          sCtx.fillStyle = '#fbbf24';
+          sCtx.beginPath();
+          sCtx.arc(px, py, 6, 0, Math.PI*2);
+          sCtx.fill();
+          sCtx.strokeStyle = '#ffffff';
+          sCtx.lineWidth = 1.2;
+          sCtx.stroke();
+        });
+      }
+    }
+
+    window.onload = function() {
+      updateVectorToy();
+      drawMathCanvasInitial();
+      setSvdStep(1);
+    };
+  </script>
+</body>
+</html>

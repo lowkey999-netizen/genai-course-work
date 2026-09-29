@@ -1,4 +1,4 @@
-"""Session 9b helpers — tokens, cost, embeddings. Imported by the notebook and the test."""
+"""Session 9b helpers - tokens, cost, embeddings. Imported by the notebook and the test."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+import openai
 import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -15,7 +16,7 @@ load_dotenv()
 
 # ---------------------------------------------------------------- tokenizer
 # gpt-oss models use the o200k_harmony encoding; tiktoken ships it. For other
-# models (e.g. llama3.2 on Ollama) this is an estimate — the model's own usage
+# models (e.g. llama3.2 on Ollama) this is an estimate - the model's own usage
 # field is the truth after you send.
 ENCODING = "o200k_harmony"
 
@@ -32,7 +33,7 @@ def show_tokens(text: str, encoding: str = ENCODING) -> list[str]:
 
 
 # ---------------------------------------------------------------- cost
-# Indicative price cards, USD per 1M tokens (edit these — prices change).
+# Indicative price cards, USD per 1M tokens (edit these - prices change).
 PRICE_CARDS = {
     "groq gpt-oss-20b": {"input": 0.10, "output": 0.50},
     "frontier small": {"input": 0.15, "output": 0.60},
@@ -56,7 +57,7 @@ def chat_client() -> OpenAI:
 
 
 def ollama_client() -> OpenAI:
-    """Local Ollama — a provider is just a base URL."""
+    """Local Ollama - a provider is just a base URL."""
     return OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 
 
@@ -65,6 +66,8 @@ def usage_for(client: OpenAI, model: str, text: str) -> tuple[int, int]:
     r = client.chat.completions.create(
         model=model, max_tokens=16, messages=[{"role": "user", "content": text}]
     )
+    if r.usage is None:
+        return (0, 0)
     return r.usage.prompt_tokens, r.usage.completion_tokens
 
 
@@ -101,7 +104,7 @@ def load_points(words: list[str] = WORDS) -> tuple[np.ndarray, str]:
     try:
         vecs = embed_via_ollama(words)
         return pca_2d(vecs), "ollama:nomic-embed-text"
-    except Exception:
+    except (openai.APIConnectionError, openai.APIError):
         if CACHE.exists():
             data = json.loads(CACHE.read_text())
             vecs = np.array([data[w] for w in words], dtype=float)

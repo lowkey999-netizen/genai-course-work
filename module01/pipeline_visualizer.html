@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Embedding Pipeline</title>
+    <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--background, #0f172a); color: var(--foreground, #f8fafc); overflow-x: hidden; }
+        .slide { display: none; opacity: 0; transition: opacity 0.5s ease-in-out; }
+        .slide.active { display: flex; opacity: 1; }
+        canvas { border-radius: 0.5rem; background: #1e293b; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .slider-bar { height: 8px; border-radius: 4px; transition: width 0.3s, background-color 0.3s; }
+        .vector-cell { font-family: monospace; padding: 2px 4px; border-radius: 4px; background: rgba(255,255,255,0.1); margin: 2px; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto w-full flex-1 flex flex-col">
+        <!-- Header / Nav -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-blue-400">The Embedding Pipeline</h1>
+            <div class="flex space-x-2" id="nav-dots">
+                <!-- Dots injected by JS -->
+            </div>
+        </div>
+
+        <!-- Slides Container -->
+        <div class="flex-1 relative bg-slate-900 rounded-xl border border-slate-700 shadow-2xl overflow-hidden p-6 flex flex-col" id="slides-container">
+            
+            <!-- Slide 1: Word to Vector -->
+            <div class="slide active flex-col h-full" id="slide-0">
+                <h2 class="text-xl font-bold text-white mb-4">1. Word &rarr; Vector</h2>
+                <div class="flex-1 flex flex-col md:flex-row gap-6 items-center">
+                    <div class="flex-1 space-y-4">
+                        <p class="text-slate-300">An embedding model turns a word into a list of numbers (a <strong>vector</strong>). These numbers aren't random. They are "sliders" that measure abstract concepts learned by the AI.</p>
+                        <div class="bg-slate-800 p-4 rounded-lg flex items-center justify-center gap-4">
+                            <span class="text-2xl font-bold text-green-400">"loan"</span>
+                            <span class="text-slate-400 text-xl">&rarr;</span>
+                            <div class="flex flex-col text-sm font-mono text-blue-300">
+                                <span>[ 0.65,</span>
+                                <span> -0.21,</span>
+                                <span>  0.88,</span>
+                                <span class="text-slate-500">  ... 765 more ...</span>
+                                <span>]</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-1 w-full bg-slate-800 p-4 rounded-lg">
+                        <h3 class="text-sm uppercase tracking-widest text-slate-400 mb-4">Under the hood (Metaphorical Sliders)</h3>
+                        <div class="space-y-3" id="vector-sliders">
+                            <!-- Injected by JS -->
+                        </div>
+                        <p class="text-xs text-slate-500 mt-4 italic">Note: Real dimensions are mathematically abstract, not clean human labels like "Finance".</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2: Embedding Space -->
+            <div class="slide flex-col h-full" id="slide-1">
+                <h2 class="text-xl font-bold text-white mb-4">2. The Embedding Space</h2>
+                <div class="flex-1 flex flex-col md:flex-row gap-6">
+                    <div class="w-full md:w-1/3 space-y-4">
+                        <p class="text-slate-300">If a vector has 3 numbers, we can plot it as a point in 3D space. <strong>Distance is meaning.</strong></p>
+                        <p class="text-slate-300">Watch how words naturally form clusters. The angle between them (Cosine Similarity) tells us how related they are.</p>
+                        <div class="space-y-2 mt-4 text-sm">
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-blue-500"></div> Finance (Loan, Bank, Credit)</div>
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> Medical (Doctor, Hospital, Nurse)</div>
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Sports (Cricket, Bat, Pitch)</div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3 h-64 md:h-auto relative">
+                        <canvas id="canvas-3d-space" class="w-full h-full"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: The 768D Problem -->
+            <div class="slide flex-col h-full" id="slide-2">
+                <h2 class="text-xl font-bold text-white mb-4">3. The 768-Dimension Problem</h2>
+                <div class="flex-1 flex flex-col justify-center items-center text-center space-y-6">
+                    <p class="text-lg text-slate-300 max-w-2xl">Human brains can only visualize up to 3 dimensions (Up/Down, Left/Right, Forward/Back).</p>
+                    <p class="text-xl font-bold text-red-400">Nomic-embed-text outputs 768 dimensions.</p>
+                    
+                    <div class="w-full max-w-3xl flex flex-wrap gap-1 opacity-50 justify-center overflow-hidden h-40 relative">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900 z-10"></div>
+                        <!-- JS injects 768 tiny blocks here -->
+                        <div id="dim-blocks" class="flex flex-wrap gap-1"></div>
+                    </div>
+                    
+                    <p class="text-slate-300 max-w-2xl">We have a 768-dimensional cloud of points. We need to print it on a flat 2D screen to look at it. <br><strong>How do we choose which 2 dimensions to keep?</strong></p>
+                </div>
+            </div>
+
+            <!-- Slide 4: PCA -->
+            <div class="slide flex-col h-full" id="slide-3">
+                <h2 class="text-xl font-bold text-white mb-4">4. PCA (Principal Component Analysis)</h2>
+                <div class="flex-1 flex flex-col md:flex-row gap-6">
+                    <div class="w-full md:w-1/3 space-y-4">
+                        <p class="text-slate-300">PCA asks: <em>"If I shine a flashlight on this 3D cloud, what angle casts the widest, most spread-out shadow on the wall?"</em></p>
+                        <p class="text-slate-300">It doesn't care about "Finance" or "Medical". It only looks for the axis where the data varies the most.</p>
+                        <div class="bg-slate-800 p-3 rounded text-sm text-blue-300">
+                            <strong>PC1:</strong> The longest spread of the data.<br>
+                            <strong>PC2:</strong> The next longest spread, perfectly perpendicular to PC1.
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3 h-64 md:h-auto relative">
+                        <canvas id="canvas-pca" class="w-full h-full"></canvas>
+                        <div class="absolute bottom-2 left-2 text-xs text-slate-400">Rotating to find the best 2D projection...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: SVD -->
+            <div class="slide flex-col h-full" id="slide-4">
+                <h2 class="text-xl font-bold text-white mb-4">5. SVD (Singular Value Decomposition)</h2>
+                <div class="flex-1 flex flex-col md:flex-row gap-6">
+                    <div class="w-full md:w-1/3 space-y-4">
+                        <p class="text-slate-300">PCA is the <em>goal</em> (find the best shadow). SVD is the <em>engine</em> that calculates it.</p>
+                        <p class="text-slate-300">SVD proves that <strong>any</strong> crazy shape of data points can be broken down into exactly 3 geometric steps applied to a perfect circle:</p>
+                        <ol class="list-decimal pl-5 text-sm space-y-2 text-slate-400">
+                            <li><strong class="text-purple-400">Vᵀ (Rotate):</strong> Align the grid.</li>
+                            <li><strong class="text-yellow-400">&Sigma; (Stretch):</strong> Pull the axes. The amount of stretch are the "Singular Values" (the importance of each PC).</li>
+                            <li><strong class="text-cyan-400">U (Rotate):</strong> Spin it into final position.</li>
+                        </ol>
+                        <p class="text-xs text-slate-500 italic mt-4">SVD rips the 768D matrix apart to hand us the Principal Components on a silver platter.</p>
+                    </div>
+                    <div class="w-full md:w-2/3 h-64 md:h-auto relative">
+                        <canvas id="canvas-svd" class="w-full h-full"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: The Final Result -->
+            <div class="slide flex-col h-full" id="slide-5">
+                <h2 class="text-xl font-bold text-white mb-4">6. The 2D Scatter Plot</h2>
+                <div class="flex-1 flex flex-col md:flex-row gap-6">
+                    <div class="w-full md:w-1/3 space-y-4">
+                        <p class="text-slate-300">We take our 768D points, multiply them by the top 2 directions PCA found, and we get this flat map.</p>
+                        <p class="text-slate-300"><strong>WARNING:</strong> We threw away 766 dimensions! </p>
+                        <p class="text-sm text-red-400 bg-red-900/20 p-3 rounded border border-red-800/50">
+                            Two points might look close together here on the screen, but could be wildly far apart in the hidden 766 dimensions. 2D is just a squashed shadow of the truth.
+                        </p>
+                    </div>
+                    <div class="w-full md:w-2/3 h-64 md:h-auto relative bg-white/5 rounded-lg flex items-center justify-center p-4">
+                        <div class="relative w-full max-w-sm aspect-square border-l-2 border-b-2 border-slate-600">
+                            <!-- Scatter points -->
+                            <div class="absolute w-3 h-3 bg-blue-500 rounded-full" style="top: 20%; left: 80%;"></div>
+                            <div class="absolute text-xs text-slate-300" style="top: 20%; left: 85%;">loan</div>
+                            
+                            <div class="absolute w-3 h-3 bg-blue-500 rounded-full" style="top: 25%; left: 75%;"></div>
+                            <div class="absolute text-xs text-slate-300" style="top: 25%; left: 80%;">bank</div>
+
+                            <div class="absolute w-3 h-3 bg-red-500 rounded-full" style="top: 70%; left: 20%;"></div>
+                            <div class="absolute text-xs text-slate-300" style="top: 70%; left: 25%;">hospital</div>
+
+                            <div class="absolute w-3 h-3 bg-red-500 rounded-full" style="top: 75%; left: 15%;"></div>
+                            <div class="absolute text-xs text-slate-300" style="top: 75%; left: 20%;">doctor</div>
+
+                            <div class="absolute w-3 h-3 bg-green-500 rounded-full" style="top: 20%; left: 20%;"></div>
+                            <div class="absolute text-xs text-slate-300" style="top: 20%; left: 25%;">cricket</div>
+
+                            <div class="absolute -left-12 bottom-1/2 -rotate-90 text-sm text-slate-500">PC 2</div>
+                            <div class="absolute bottom-[-30px] left-1/2 text-sm text-slate-500 -translate-x-1/2">PC 1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-between items-center mt-6">
+            <button id="btn-prev" class="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-medium disabled:opacity-50 transition-colors">Previous</button>
+            <button id="btn-next" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-medium disabled:opacity-50 transition-colors">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Navigation Logic ---
+        let currentSlide = 0;
+        const totalSlides = 6;
+        const dotsContainer = document.getElementById('nav-dots');
+        
+        for(let i=0; i<totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = `w-3 h-3 rounded-full ${i===0 ? 'bg-blue-500' : 'bg-slate-700'}`;
+            dotsContainer.appendChild(dot);
+        }
+
+        function updateNav() {
+            document.querySelectorAll('.slide').forEach((el, i) => {
+                if(i === currentSlide) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+            
+            Array.from(dotsContainer.children).forEach((dot, i) => {
+                dot.className = `w-3 h-3 rounded-full transition-colors ${i===currentSlide ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'bg-slate-700'}`;
+            });
+
+            document.getElementById('btn-prev').disabled = currentSlide === 0;
+            document.getElementById('btn-next').disabled = currentSlide === totalSlides - 1;
+        }
+
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            if(currentSlide > 0) { currentSlide--; updateNav(); }
+        });
+        document.getElementById('btn-next').addEventListener('click', () => {
+            if(currentSlide < totalSlides - 1) { currentSlide++; updateNav(); }
+        });
+
+        // --- Slide 1: Sliders ---
+        const sliderData = [
+            { label: "Finance / Money", val: 85, color: "bg-blue-500" },
+            { label: "Living / Biological", val: -40, color: "bg-red-500" },
+            { label: "Formal / Professional", val: 70, color: "bg-purple-500" },
+            { label: "Physical Action", val: -20, color: "bg-green-500" },
+            { label: "Abstract Concept X", val: 45, color: "bg-yellow-500" }
+        ];
+        const slidersContainer = document.getElementById('vector-sliders');
+        sliderData.forEach(s => {
+            const width = Math.abs(s.val) + "%";
+            const left = s.val < 0 ? (50 + s.val) + "%" : "50%";
+            const barWidth = Math.abs(s.val) / 2 + "%"; // scale for layout
+            
+            slidersContainer.innerHTML += `
+                <div class="flex items-center gap-2 text-xs text-slate-300">
+                    <div class="w-32 truncate">${s.label}</div>
+                    <div class="flex-1 h-4 bg-slate-900 rounded-full relative overflow-hidden">
+                        <div class="absolute top-0 bottom-0 w-[2px] bg-slate-600 left-1/2"></div>
+                        <div class="absolute top-0 bottom-0 ${s.color} rounded-full opacity-80" 
+                             style="left: ${s.val < 0 ? 50 - Math.abs(s.val)/2 : 50}%; width: ${Math.abs(s.val)/2}%;"></div>
+                    </div>
+                    <div class="w-12 text-right font-mono">${(s.val/100).toFixed(2)}</div>
+                </div>
+            `;
+        });
+
+        // --- Slide 3: 768 Blocks ---
+        const dimBlocks = document.getElementById('dim-blocks');
+        for(let i=0; i<300; i++) {
+            const v = Math.random();
+            const col = v > 0.8 ? 'bg-blue-500' : v < 0.2 ? 'bg-red-500' : 'bg-slate-700';
+            dimBlocks.innerHTML += `<div class="w-3 h-3 ${col} rounded-sm"></div>`;
+        }
+
+        // --- 3D Engine helper ---
+        function project3D(x, y, z, angle, pitch, width, height) {
+            // Rotate around Y
+            let x1 = x * Math.cos(angle) - z * Math.sin(angle);
+            let z1 = x * Math.sin(angle) + z * Math.cos(angle);
+            // Rotate around X (pitch)
+            let y2 = y * Math.cos(pitch) - z1 * Math.sin(pitch);
+            let z2 = y * Math.sin(pitch) + z1 * Math.cos(pitch);
+            
+            const scale = 300 / (300 + z2);
+            return {
+                x: width/2 + x1 * scale * 100,
+                y: height/2 - y2 * scale * 100,
+                scale: scale,
+                z: z2
+            };
+        }
+
+        // --- Slide 2: 3D Space Canvas ---
+        const canvas3D = document.getElementById('canvas-3d-space');
+        const ctx3D = canvas3D.getContext('2d');
+        const points3D = [
+            // Finance
+            {x: 1, y: 1, z: 1, label: 'loan', col: '#3b82f6'},
+            {x: 1.2, y: 0.8, z: 0.9, label: 'bank', col: '#3b82f6'},
+            {x: 0.8, y: 1.2, z: 1.1, label: 'credit', col: '#3b82f6'},
+            // Medical
+            {x: -1, y: -1, z: 0.5, label: 'doctor', col: '#ef4444'},
+            {x: -1.2, y: -0.8, z: 0.6, label: 'hospital', col: '#ef4444'},
+            {x: -0.8, y: -1.2, z: 0.4, label: 'nurse', col: '#ef4444'},
+            // Sports
+            {x: -0.5, y: 1, z: -1, label: 'cricket', col: '#22c55e'},
+            {x: -0.3, y: 1.2, z: -0.8, label: 'bat', col: '#22c55e'},
+        ];
+        
+        let time = 0;
+        function render3D() {
+            if(canvas3D.width !== canvas3D.clientWidth) {
+                canvas3D.width = canvas3D.clientWidth;
+                canvas3D.height = canvas3D.clientHeight;
+            }
+            ctx3D.clearRect(0, 0, canvas3D.width, canvas3D.height);
+            
+            time += 0.01;
+            
+            // Draw Origin axes
+            const o = project3D(0,0,0, time, 0.3, canvas3D.width, canvas3D.height);
+            const ax = project3D(2,0,0, time, 0.3, canvas3D.width, canvas3D.height);
+            const ay = project3D(0,2,0, time, 0.3, canvas3D.width, canvas3D.height);
+            const az = project3D(0,0,2, time, 0.3, canvas3D.width, canvas3D.height);
+            
+            ctx3D.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx3D.beginPath(); ctx3D.moveTo(o.x, o.y); ctx3D.lineTo(ax.x, ax.y); ctx3D.stroke();
+            ctx3D.beginPath(); ctx3D.moveTo(o.x, o.y); ctx3D.lineTo(ay.x, ay.y); ctx3D.stroke();
+            ctx3D.beginPath(); ctx3D.moveTo(o.x, o.y); ctx3D.lineTo(az.x, az.y); ctx3D.stroke();
+
+            // Draw and sort points
+            let projPts = points3D.map(p => {
+                let pp = project3D(p.x, p.y, p.z, time, 0.3, canvas3D.width, canvas3D.height);
+                pp.label = p.label; pp.col = p.col;
+                return pp;
+            }).sort((a,b) => b.z - a.z);
+
+            projPts.forEach(p => {
+                ctx3D.beginPath();
+                ctx3D.arc(p.x, p.y, 4 * p.scale, 0, Math.PI*2);
+                ctx3D.fillStyle = p.col;
+                ctx3D.fill();
+                
+                ctx3D.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx3D.font = '12px sans-serif';
+                ctx3D.fillText(p.label, p.x + 8, p.y + 4);
+            });
+
+            requestAnimationFrame(render3D);
+        }
+        render3D();
+
+        // --- Slide 4: PCA Shadow Canvas ---
+        const canvasPCA = document.getElementById('canvas-pca');
+        const ctxPCA = canvasPCA.getContext('2d');
+        // generate ellipsoid point cloud
+        const pcaPts = [];
+        for(let i=0; i<100; i++) {
+            let u = Math.random() * Math.PI * 2;
+            let v = Math.acos(2 * Math.random() - 1);
+            pcaPts.push({
+                x: 1.5 * Math.sin(v) * Math.cos(u),
+                y: 0.5 * Math.sin(v) * Math.sin(u),
+                z: 0.2 * Math.cos(v)
+            });
+        }
+        
+        let timePCA = 0;
+        function renderPCA() {
+            if(canvasPCA.width !== canvasPCA.clientWidth) {
+                canvasPCA.width = canvasPCA.clientWidth;
+                canvasPCA.height = canvasPCA.clientHeight;
+            }
+            ctxPCA.clearRect(0, 0, canvasPCA.width, canvasPCA.height);
+            timePCA += 0.005;
+
+            // Draw "screen/wall" behind
+            ctxPCA.fillStyle = 'rgba(255,255,255,0.05)';
+            ctxPCA.fillRect(canvasPCA.width/2 - 100, canvasPCA.height/2 - 100, 200, 200);
+            
+            let projPts = pcaPts.map(p => project3D(p.x, p.y, p.z, timePCA, 0, canvasPCA.width, canvasPCA.height));
+            
+            // Draw lines to wall (projection)
+            ctxPCA.strokeStyle = 'rgba(59, 130, 246, 0.1)';
+            projPts.forEach(p => {
+                ctxPCA.beginPath();
+                ctxPCA.moveTo(p.x, p.y);
+                // fake orthographic shadow on the wall
+                ctxPCA.lineTo(canvasPCA.width/2 + (p.x - canvasPCA.width/2)*0.8, canvasPCA.height/2 + (p.y - canvasPCA.height/2)*0.8);
+                ctxPCA.stroke();
+            });
+
+            // Draw shadow points
+            ctxPCA.fillStyle = 'rgba(59, 130, 246, 0.5)';
+            projPts.forEach(p => {
+                let sx = canvasPCA.width/2 + (p.x - canvasPCA.width/2)*0.8;
+                let sy = canvasPCA.height/2 + (p.y - canvasPCA.height/2)*0.8;
+                ctxPCA.beginPath(); ctxPCA.arc(sx, sy, 2, 0, Math.PI*2); ctxPCA.fill();
+            });
+
+            // Draw actual 3D points
+            ctxPCA.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            projPts.forEach(p => {
+                ctxPCA.beginPath(); ctxPCA.arc(p.x, p.y, 2 * p.scale, 0, Math.PI*2); ctxPCA.fill();
+            });
+
+            requestAnimationFrame(renderPCA);
+        }
+        renderPCA();
+
+        // --- Slide 5: SVD Animation ---
+        const canvasSVD = document.getElementById('canvas-svd');
+        const ctxSVD = canvasSVD.getContext('2d');
+        let timeSVD = 0;
+        
+        function drawGrid(ctx, transformMatrix, color) {
+            ctx.save();
+            ctx.translate(canvasSVD.width/2, canvasSVD.height/2);
+            ctx.transform(transformMatrix[0], transformMatrix[1], transformMatrix[2], transformMatrix[3], 0, 0);
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            for(let i = -5; i <= 5; i++) {
+                ctx.beginPath(); ctx.moveTo(i*20, -100); ctx.lineTo(i*20, 100); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-100, i*20); ctx.lineTo(100, i*20); ctx.stroke();
+            }
+            // Draw circle
+            ctx.beginPath(); ctx.arc(0,0, 60, 0, Math.PI*2);
+            ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.restore();
+        }
+
+        function renderSVD() {
+            if(canvasSVD.width !== canvasSVD.clientWidth) {
+                canvasSVD.width = canvasSVD.clientWidth;
+                canvasSVD.height = canvasSVD.clientHeight;
+            }
+            ctxSVD.clearRect(0, 0, canvasSVD.width, canvasSVD.height);
+            
+            timeSVD += 0.01;
+            let cycle = timeSVD % (Math.PI * 2);
+            
+            // Stages of SVD:
+            // 1. Identity
+            // 2. Rotate (V^T)
+            // 3. Stretch (Sigma)
+            // 4. Rotate (U)
+            
+            let stage = Math.floor((timeSVD / (Math.PI/2)) % 4);
+            let progress = (timeSVD % (Math.PI/2)) / (Math.PI/2);
+            // ease in out
+            progress = progress<.5 ? 2*progress*progress : -1+(4-2*progress)*progress;
+
+            let angle1 = 0, sx = 1, sy = 1, angle2 = 0;
+            let targetAngle1 = Math.PI/4; // 45 deg
+            let targetSx = 2.0, targetSy = 0.5;
+            let targetAngle2 = -Math.PI/6; // -30 deg
+
+            if(stage === 0) {
+                // Identity pause
+            } else if (stage === 1) {
+                angle1 = targetAngle1 * progress;
+            } else if (stage === 2) {
+                angle1 = targetAngle1;
+                sx = 1 + (targetSx - 1) * progress;
+                sy = 1 + (targetSy - 1) * progress;
+            } else if (stage === 3) {
+                angle1 = targetAngle1;
+                sx = targetSx; sy = targetSy;
+                angle2 = targetAngle2 * progress;
+            }
+
+            ctxSVD.save();
+            ctxSVD.fillStyle = 'rgba(0,0,0,0.5)';
+            ctxSVD.fillRect(0,0,canvasSVD.width, canvasSVD.height);
+            
+            // Text indicator
+            ctxSVD.fillStyle = 'white';
+            ctxSVD.font = '16px sans-serif';
+            let txt = "Original Data";
+            if(stage === 1) txt = "Step 1: Rotate (Vᵀ)";
+            if(stage === 2) txt = "Step 2: Stretch (Σ)";
+            if(stage === 3) txt = "Step 3: Rotate (U)";
+            ctxSVD.fillText(txt, 20, 30);
+
+            // Compute compound matrix
+            let cos1 = Math.cos(angle1), sin1 = Math.sin(angle1);
+            let cos2 = Math.cos(angle2), sin2 = Math.sin(angle2);
+            
+            // Math for combined affine transform:
+            // R2 * S * R1
+            let m11 = cos2 * (sx * cos1) - sin2 * (sy * sin1);
+            let m12 = cos2 * (sx * -sin1) - sin2 * (sy * cos1);
+            let m21 = sin2 * (sx * cos1) + cos2 * (sy * sin1);
+            let m22 = sin2 * (sx * -sin1) + cos2 * (sy * cos1);
+
+            drawGrid(ctxSVD, [m11, m21, m12, m22], 'rgba(59, 130, 246, 0.3)');
+            ctxSVD.restore();
+
+            requestAnimationFrame(renderSVD);
+        }
+        renderSVD();
+
+    </script>
+</body>
+</html>

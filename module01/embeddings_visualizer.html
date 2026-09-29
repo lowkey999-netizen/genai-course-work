@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Understanding Embeddings & Dimensions</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --background: #0f172a;
+      --foreground: #f8fafc;
+      --card: #1e293b;
+      --border: #334155;
+      --muted-foreground: #94a3b8;
+    }
+    body {
+      background-color: var(--background) !important;
+      color: var(--foreground) !important;
+    }
+    .slider-track {
+      background: var(--border);
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-4 md:p-6 font-sans">
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header Banner -->
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <span class="text-xs uppercase tracking-wider font-bold text-sky-500 bg-sky-500/10 px-2.5 py-1 rounded-md">Visual Guide</span>
+          <h1 class="text-2xl font-bold mt-2 text-[var(--foreground)]">How High-Dimensional Embeddings Actually Work</h1>
+          <p class="text-[var(--muted-foreground)] text-sm mt-1">No brain-melting 768D geometry required: a dimension is just a slider.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="setTab('sliders')" id="tab-btn-sliders" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-white transition">1. The Sliders</button>
+          <button onclick="setTab('compare')" id="tab-btn-compare" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">2. Comparing Words</button>
+          <button onclick="setTab('pca')" id="tab-btn-pca" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">3. The 2D PCA Map</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: THE SLIDERS METAPHOR -->
+    <div id="tab-sliders" class="tab-content space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Explainer Card -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 space-y-4">
+          <h2 class="text-base font-bold flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-sky-500/20 text-sky-500 text-xs flex items-center justify-center font-bold">1</span>
+            A Dimension is Just a Trait (A Slider)
+          </h2>
+          <p class="text-sm text-[var(--muted-foreground)] leading-relaxed">
+            In physical space, 3D means <em>Left/Right</em>, <em>Up/Down</em>, and <em>Forward/Back</em>. But in computer science, a <strong>dimension is simply any property you can measure with a number</strong>.
+          </p>
+          <div class="bg-[var(--background)] p-4 rounded-xl border border-[var(--border)] space-y-2 text-xs">
+            <div class="font-semibold text-sky-400">Example: Describing a Real House</div>
+            <div class="grid grid-cols-2 gap-2 text-[var(--muted-foreground)]">
+              <div>• Bedrooms: <span class="text-[var(--foreground)] font-mono">3</span></div>
+              <div>• Square Feet: <span class="text-[var(--foreground)] font-mono">1800</span></div>
+              <div>• Distance to School: <span class="text-[var(--foreground)] font-mono">1.5 km</span></div>
+              <div>• Price in Lakhs: <span class="text-[var(--foreground)] font-mono">85</span></div>
+            </div>
+            <div class="pt-2 border-t border-[var(--border)]">
+              Vector: <span class="font-mono text-emerald-400">[3, 1800, 1.5, 85]</span> (A 4D Point!)
+            </div>
+          </div>
+          <p class="text-xs text-[var(--muted-foreground)]">
+            To an AI model, human language works the same way! Instead of 4 house traits, the AI has <strong>768 abstract sliders</strong> representing semantic properties.
+          </p>
+        </div>
+
+        <!-- Interactive Sliders Toy -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-[var(--foreground)]">Word Meaning Sliders (Sample 5 of 768)</h3>
+            <span class="text-xs font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded">Preset: <span id="current-word-label">Loan</span></span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button onclick="applyPreset('loan')" class="px-2.5 py-1 text-xs rounded bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 border border-sky-500/30 font-medium">Loan</button>
+            <button onclick="applyPreset('emi')" class="px-2.5 py-1 text-xs rounded bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 border border-sky-500/30 font-medium">EMI</button>
+            <button onclick="applyPreset('hospital')" class="px-2.5 py-1 text-xs rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 font-medium">Hospital</button>
+            <button onclick="applyPreset('doctor')" class="px-2.5 py-1 text-xs rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 font-medium">Doctor</button>
+            <button onclick="applyPreset('cricket')" class="px-2.5 py-1 text-xs rounded bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 font-medium">Cricket</button>
+          </div>
+
+          <div class="space-y-3 pt-2">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">Dim #1: Finance & Banking</span>
+                <span id="val-1" class="font-mono text-xs">0.95</span>
+              </div>
+              <input type="range" id="slider-1" min="-1" max="1" step="0.05" value="0.95" oninput="updateVector()" class="w-full accent-sky-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">Dim #2: Healthcare & Medicine</span>
+                <span id="val-2" class="font-mono text-xs">-0.80</span>
+              </div>
+              <input type="range" id="slider-2" min="-1" max="1" step="0.05" value="-0.80" oninput="updateVector()" class="w-full accent-emerald-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">Dim #3: Sports & Recreation</span>
+                <span id="val-3" class="font-mono text-xs">-0.60</span>
+              </div>
+              <input type="range" id="slider-3" min="-1" max="1" step="0.05" value="-0.60" oninput="updateVector()" class="w-full accent-amber-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">Dim #4: Obligation / Recurring</span>
+                <span id="val-4" class="font-mono text-xs">0.85</span>
+              </div>
+              <input type="range" id="slider-4" min="-1" max="1" step="0.05" value="0.85" oninput="updateVector()" class="w-full accent-purple-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">Dim #5: Physical Building / Venue</span>
+                <span id="val-5" class="font-mono text-xs">0.10</span>
+              </div>
+              <input type="range" id="slider-5" min="-1" max="1" step="0.05" value="0.10" oninput="updateVector()" class="w-full accent-rose-500">
+            </div>
+          </div>
+
+          <div class="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+            <div class="text-[11px] uppercase tracking-wider text-[var(--muted-foreground)] font-semibold mb-1">Resulting Embedding Vector</div>
+            <div id="vector-display" class="font-mono text-xs text-sky-400 break-all">[0.95, -0.80, -0.60, 0.85, 0.10, ... +763 more]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: COMPARING TWO WORDS -->
+    <div id="tab-compare" class="tab-content hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-6">
+        <div>
+          <h2 class="text-base font-bold flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 text-xs flex items-center justify-center font-bold">2</span>
+            How Does the AI Know Words Are "Similar"?
+          </h2>
+          <p class="text-sm text-[var(--muted-foreground)] mt-1">
+            The AI compares two lists of numbers. If the sliders point in the same direction, the words mean similar things!
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold text-[var(--muted-foreground)] block mb-1.5">Pick Word A</label>
+            <select id="word-a-select" onchange="runComparison()" class="w-full bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-lg p-2.5 text-sm">
+              <option value="loan">loan</option>
+              <option value="EMI">EMI</option>
+              <option value="interest">interest</option>
+              <option value="bank">bank</option>
+              <option value="hospital">hospital</option>
+              <option value="doctor">doctor</option>
+              <option value="prescription">prescription</option>
+              <option value="cricket">cricket</option>
+              <option value="monsoon">monsoon</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-[var(--muted-foreground)] block mb-1.5">Pick Word B</label>
+            <select id="word-b-select" onchange="runComparison()" class="w-full bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-lg p-2.5 text-sm">
+              <option value="EMI">EMI</option>
+              <option value="loan">loan</option>
+              <option value="interest">interest</option>
+              <option value="bank">bank</option>
+              <option value="hospital">hospital</option>
+              <option value="doctor">doctor</option>
+              <option value="prescription">prescription</option>
+              <option value="cricket">cricket</option>
+              <option value="monsoon">monsoon</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Metric Card -->
+        <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-5 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div class="text-xs text-[var(--muted-foreground)] font-medium">Semantic Similarity (Cosine Alignment)</div>
+            <div id="similarity-score" class="text-3xl font-extrabold text-emerald-400 mt-1">94%</div>
+            <div id="similarity-label" class="text-xs text-emerald-400/80 mt-0.5">Extremely close in vector space! Both refer to financial debt/installments.</div>
+          </div>
+          <div class="w-full sm:w-48 bg-[var(--border)] h-3 rounded-full overflow-hidden">
+            <div id="similarity-bar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 94%"></div>
+          </div>
+        </div>
+
+        <!-- Radar/Bar Comparison -->
+        <div class="space-y-3">
+          <div class="text-xs font-semibold text-[var(--muted-foreground)]">Trait Alignment Breakdown:</div>
+          <div id="trait-breakdown" class="space-y-2 text-xs">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: THE 2D PCA MAP -->
+    <div id="tab-pca" class="tab-content hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 class="text-base font-bold flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-bold">3</span>
+              The 2D PCA Shadow (Cell 17 from your Notebook)
+            </h2>
+            <p class="text-sm text-[var(--muted-foreground)] mt-1">
+              PCA takes 768 coordinates and projects their flat 2D shadow onto your screen. Notice how words naturally cluster!
+            </p>
+          </div>
+          <span class="text-xs font-mono text-[var(--muted-foreground)]">Interactive Canvas</span>
+        </div>
+
+        <div class="relative bg-[var(--background)] border border-[var(--border)] rounded-xl p-3 overflow-hidden">
+          <canvas id="pcaCanvas" width="700" height="340" class="w-full h-auto cursor-pointer block"></canvas>
+          <div id="tooltip" class="absolute hidden bg-[var(--card)] border border-[var(--border)] px-2.5 py-1.5 rounded-lg text-xs shadow-lg pointer-events-none text-[var(--foreground)] font-medium"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div class="p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl">
+            <div class="font-bold text-sky-400 flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Financial Cluster
+            </div>
+            <div class="text-[var(--muted-foreground)] mt-1">loan, EMI, interest, bank, credit score. All tightly packed together!</div>
+          </div>
+          <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            <div class="font-bold text-emerald-400 flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Healthcare Cluster
+            </div>
+            <div class="text-[var(--muted-foreground)] mt-1">hospital, doctor, prescription. Clustered on the opposite side.</div>
+          </div>
+          <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+            <div class="font-bold text-amber-400 flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Outliers
+            </div>
+            <div class="text-[var(--muted-foreground)] mt-1">cricket & monsoon. Sits alone because weather and sports share zero financial traits.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- TABS LOGIC ---
+    function setTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-sky-500', 'text-white');
+        btn.classList.add('bg-[var(--border)]', 'text-[var(--muted-foreground)]');
+      });
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      activeBtn.classList.remove('bg-[var(--border)]', 'text-[var(--muted-foreground)]');
+      activeBtn.classList.add('bg-sky-500', 'text-white');
+
+      if (tabId === 'pca') {
+        setTimeout(drawPCA, 50);
+      }
+    }
+
+    // --- TAB 1: SLIDERS LOGIC ---
+    const presets = {
+      loan: { label: "Loan", vals: [0.95, -0.80, -0.60, 0.85, 0.10] },
+      emi: { label: "EMI", vals: [0.92, -0.85, -0.70, 0.98, -0.20] },
+      hospital: { label: "Hospital", vals: [-0.60, 0.95, -0.40, 0.10, 0.95] },
+      doctor: { label: "Doctor", vals: [-0.40, 0.98, -0.30, 0.20, -0.30] },
+      cricket: { label: "Cricket", vals: [-0.70, -0.60, 0.98, 0.30, 0.80] }
+    };
+
+    function applyPreset(key) {
+      const p = presets[key];
+      document.getElementById('current-word-label').innerText = p.label;
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById('slider-' + i).value = p.vals[i-1];
+        document.getElementById('val-' + i).innerText = p.vals[i-1].toFixed(2);
+      }
+      updateVector();
+    }
+
+    function updateVector() {
+      const v = [];
+      for (let i = 1; i <= 5; i++) {
+        const val = parseFloat(document.getElementById('slider-' + i).value);
+        document.getElementById('val-' + i).innerText = val.toFixed(2);
+        v.push(val.toFixed(2));
+      }
+      document.getElementById('vector-display').innerText = `[${v.join(', ')}, ... +763 more]`;
+    }
+
+    // --- TAB 2: WORD COMPARISON LOGIC ---
+    const wordData = {
+      loan:         { finance: 0.95, medical: -0.80, sports: -0.70, recurring: 0.85, building: 0.10 },
+      EMI:          { finance: 0.92, medical: -0.85, sports: -0.70, recurring: 0.98, building: -0.20 },
+      interest:     { finance: 0.90, medical: -0.75, sports: -0.60, recurring: 0.80, building: -0.50 },
+      bank:         { finance: 0.98, medical: -0.70, sports: -0.50, recurring: 0.40, building: 0.90 },
+      "credit score": { finance: 0.88, medical: -0.70, sports: -0.60, recurring: 0.60, building: -0.40 },
+      hospital:     { finance: -0.50, medical: 0.95, sports: -0.40, recurring: 0.10, building: 0.95 },
+      doctor:       { finance: -0.40, medical: 0.98, sports: -0.30, recurring: 0.20, building: -0.30 },
+      prescription: { finance: -0.30, medical: 0.92, sports: -0.50, recurring: 0.70, building: -0.60 },
+      cricket:      { finance: -0.60, medical: -0.50, sports: 0.98, recurring: 0.20, building: 0.80 },
+      monsoon:      { finance: -0.50, medical: -0.40, sports: -0.30, recurring: 0.50, building: -0.80 }
+    };
+
+    function runComparison() {
+      const aName = document.getElementById('word-a-select').value;
+      const bName = document.getElementById('word-b-select').value;
+      const a = wordData[aName];
+      const b = wordData[bName];
+
+      let dot = 0, magA = 0, magB = 0;
+      const traits = ["finance", "medical", "sports", "recurring", "building"];
+      const traitNames = ["Finance / Debt", "Healthcare / Body", "Sports / Play", "Recurring / Obligation", "Physical Place"];
+
+      traits.forEach(t => {
+        dot += a[t] * b[t];
+        magA += a[t] * a[t];
+        magB += b[t] * b[t];
+      });
+
+      const sim = Math.max(0, Math.min(1, dot / (Math.sqrt(magA) * Math.sqrt(magB))));
+      const pct = Math.round(sim * 100);
+
+      document.getElementById('similarity-score').innerText = pct + '%';
+      document.getElementById('similarity-bar').style.width = pct + '%';
+
+      let label = "";
+      if (pct > 85) {
+        label = `Extremely close! "${aName}" and "${bName}" share nearly identical semantic roles.`;
+        document.getElementById('similarity-score').className = "text-3xl font-extrabold text-emerald-400 mt-1";
+        document.getElementById('similarity-bar').className = "bg-emerald-500 h-full transition-all duration-300";
+      } else if (pct > 40) {
+        label = `Moderate overlap. They share some abstract traits but belong to different domains.`;
+        document.getElementById('similarity-score').className = "text-3xl font-extrabold text-amber-400 mt-1";
+        document.getElementById('similarity-bar').className = "bg-amber-500 h-full transition-all duration-300";
+      } else {
+        label = `Very distant! "${aName}" and "${bName}" point in completely different directions in vector space.`;
+        document.getElementById('similarity-score').className = "text-3xl font-extrabold text-rose-400 mt-1";
+        document.getElementById('similarity-bar').className = "bg-rose-500 h-full transition-all duration-300";
+      }
+      document.getElementById('similarity-label').innerText = label;
+
+      let html = "";
+      traits.forEach((t, i) => {
+        const diff = Math.abs(a[t] - b[t]);
+        html += `
+          <div class="flex items-center justify-between p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+            <span class="font-medium text-[var(--foreground)]">${traitNames[i]}</span>
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-sky-400">${aName}: ${a[t].toFixed(2)}</span>
+              <span class="text-[var(--muted-foreground)]">vs</span>
+              <span class="font-mono text-emerald-400">${bName}: ${b[t].toFixed(2)}</span>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('trait-breakdown').innerHTML = html;
+    }
+
+    // --- TAB 3: PCA 2D CANVAS ---
+    const pcaPoints = [
+      { name: "loan", x: -0.75, y: -0.35, group: "finance" },
+      { name: "EMI", x: -0.82, y: -0.40, group: "finance" },
+      { name: "interest", x: -0.70, y: -0.50, group: "finance" },
+      { name: "credit score", x: -0.60, y: -0.25, group: "finance" },
+      { name: "bank", x: -0.55, y: -0.10, group: "finance" },
+      { name: "hospital", x: 0.65, y: -0.20, group: "medical" },
+      { name: "doctor", x: 0.72, y: -0.35, group: "medical" },
+      { name: "prescription", x: 0.58, y: -0.45, group: "medical" },
+      { name: "cricket", x: 0.10, y: 0.65, group: "other" },
+      { name: "monsoon", x: -0.20, y: 0.50, group: "other" },
+    ];
+
+    function drawPCA() {
+      const canvas = document.getElementById('pcaCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Axes
+      ctx.strokeStyle = 'rgba(150, 150, 150, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
+      ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Clusters grouping circle shadows
+      // Finance group shadow
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.beginPath();
+      ctx.ellipse(w * 0.18, h * 0.68, 80, 50, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Medical group shadow
+      ctx.fillStyle = 'rgba(52, 211, 153, 0.08)';
+      ctx.beginPath();
+      ctx.ellipse(w * 0.82, h * 0.68, 70, 45, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      pcaPoints.forEach(pt => {
+        const px = (pt.x + 1) / 2 * (w - 100) + 50;
+        const py = (1 - (pt.y + 1) / 2) * (h - 80) + 40;
+
+        let color = '#38bdf8';
+        if (pt.group === 'medical') color = '#34d399';
+        if (pt.group === 'other') color = '#fbbf24';
+
+        // Point
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillText(pt.name, px + 9, py + 4);
+      });
+    }
+
+    window.onload = function() {
+      applyPreset('loan');
+      runComparison();
+      drawPCA();
+    };
+  </script>
+</body>
+</html>
+

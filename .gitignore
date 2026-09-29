@@ -6,3 +6,9 @@ __pycache__/
 .vscode/
 .DS_Store
 agent.py
+GEMINI.md
+.continueignore
+.agentignore
+.github/
+.ipynb_checkpoints/
+module01/Pipeline_visualizer_explanation.md
