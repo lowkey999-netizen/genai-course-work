@@ -60,7 +60,7 @@ def ollama_client() -> OpenAI:
 def usage_for(client: OpenAI, model: str, text: str) -> tuple[int, int]:
     """Send text; return (prompt_tokens, completion_tokens) as the model counted them."""
     r = client.chat.completions.create(model=model, max_tokens=16, messages=[{"role": "user", "content": text}])
-    return r.usage.prompt_tokens, r.usage.completion_tokens
+    return r.usage.prompt_tokens, r.usage.completion_tokens # type: ignore
 
 
 # ---------------------------------------------------------------- embeddings
@@ -85,7 +85,7 @@ def load_points(words: list[str] = WORDS) -> tuple[np.ndarray, str]:
     try:
         vecs = embed_via_ollama(words)
         return pca_2d(vecs), "ollama:nomic-embed-text"
-    except Exception:
+    except Exception:  # noqa: BLE001
         if CACHE.exists():
             data = json.loads(CACHE.read_text())
             vecs = np.array([data[w] for w in words], dtype=float)
