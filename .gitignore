@@ -12,6 +12,5 @@ GEMINI.md
 .github/
 .ipynb_checkpoints/
 module01/Pipeline_visualizer_explanation.md
-module01/s10_matrix_output.md
 .geminiignore
 .markdownlint.json
