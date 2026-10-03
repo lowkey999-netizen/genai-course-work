@@ -4,7 +4,7 @@ This module covers the core physics and economics of Large Language Models: toke
 
 ---
 
-## 📚 Session Directory & Coursework Map
+## Session Directory & Coursework Map
 
 The table below organizes all notebooks, helper modules, datasets, and readings for Module 01:
 
@@ -16,7 +16,7 @@ The table below organizes all notebooks, helper modules, datasets, and readings 
 
 ---
 
-## 🎨 Interactive Intuition Guides & Visualizations
+## Interactive Intuition Guides & Visualizations
 
 This module includes three standalone, animated visual guides created to build deep intuitive mental models for embeddings, vector geometry, PCA, and SVD.
 
