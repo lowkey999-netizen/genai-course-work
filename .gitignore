@@ -14,3 +14,4 @@ GEMINI.md
 module01/Pipeline_visualizer_explanation.md
 .geminiignore
 .markdownlint.json
+.agents/
