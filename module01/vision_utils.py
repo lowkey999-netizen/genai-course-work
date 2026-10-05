@@ -6,13 +6,14 @@ Two ideas live here:
      strictest level only guarantees SHAPE. Your own validation (Pydantic) guarantees MEANING.
 
 Everything takes a client and a model name, so it works with any OpenAI-compatible provider."""
+
 from __future__ import annotations
 
 import base64
 import json
 import mimetypes
 import re
-from datetime import date, datetime
+from datetime import date, datetime  # noqa: F401
 from pathlib import Path
 from typing import Optional
 
@@ -37,23 +38,30 @@ def encode_image(path: str | Path) -> str:
     return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode('ascii')}"
 
 
-def vision_messages(prompt: str, image_path: str | Path, system: str = "") -> list[dict]:
+def vision_messages(
+    prompt: str, image_path: str | Path, system: str = ""
+) -> list[dict]:
     """A user message whose content is a LIST: one text part and one image part."""
     msgs = []
     if system:
         msgs.append({"role": "system", "content": system})
-    msgs.append({"role": "user", "content": [
-        {"type": "text", "text": prompt},
-        {"type": "image_url", "image_url": {"url": encode_image(image_path)}},
-    ]})
+    msgs.append(
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": encode_image(image_path)}},
+            ],
+        }
+    )
     return msgs
 
 
-def find_vision_model(client, preferred=VISION_PREFERENCES) -> Optional[str]:
+def find_vision_model(client, preferred=VISION_PREFERENCES) -> Optional[str]:  # noqa: UP045
     """Return the first preferred vision model the provider actually lists, else None."""
     try:
         available = {m.id for m in client.models.list().data}
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
     for name in preferred:
         if name in available:
@@ -63,19 +71,28 @@ def find_vision_model(client, preferred=VISION_PREFERENCES) -> Optional[str]:
 
 # One shared prompt: read_image_text() sends it, and the notebook's cost comparison sends the SAME words
 # without the picture - so the difference in prompt tokens is the picture, not a changed instruction.
-TRANSCRIBE_PROMPT = ("Transcribe every piece of text visible in this image, one line per field, exactly as printed. "
-                     "Do not interpret or reformat anything.")
+TRANSCRIBE_PROMPT = (
+    "Transcribe every piece of text visible in this image, one line per field, exactly as printed. "
+    "Do not interpret or reformat anything."
+)
 
 
-def read_image_text(client, model: str, image_path: str | Path, max_tokens: int = 400) -> dict:
+def read_image_text(
+    client, model: str, image_path: str | Path, max_tokens: int = 400
+) -> dict:
     """Ask a vision model to transcribe the text it can see. Returns text plus usage, so the
     cost of an image is visible: compare prompt_tokens with a text-only call."""
     r = client.chat.completions.create(
-        model=model, max_tokens=max_tokens, temperature=0,
+        model=model,
+        max_tokens=max_tokens,
+        temperature=0,
         messages=vision_messages(TRANSCRIBE_PROMPT, image_path),
     )
-    return {"text": r.choices[0].message.content, "prompt_tokens": r.usage.prompt_tokens,
-            "completion_tokens": r.usage.completion_tokens}
+    return {
+        "text": r.choices[0].message.content,
+        "prompt_tokens": r.usage.prompt_tokens,
+        "completion_tokens": r.usage.completion_tokens,
+    }
 
 
 def _norm(text: str) -> str:
@@ -111,14 +128,14 @@ class KycRecord(BaseModel):
 
     document_type: str = Field(pattern="^(id_card|utility_bill|other)$")
     full_name: str = Field(min_length=2)
-    date_of_birth: Optional[date] = None          # id cards have one; a utility bill does not
-    id_number: Optional[str] = None
-    address: Optional[str] = None
+    date_of_birth: Optional[date] = None  # id cards have one; a utility bill does not  # noqa: UP045
+    id_number: Optional[str] = None  # noqa: UP045
+    address: Optional[str] = None  # noqa: UP045
 
     @field_validator("date_of_birth")
     @classmethod
     def _dob_in_past(cls, v):
-        if v is not None and v >= date.today():
+        if v is not None and v >= date.today():  # noqa: DTZ011
             raise ValueError("date_of_birth must be in the past")
         return v
 
@@ -126,7 +143,9 @@ class KycRecord(BaseModel):
     def _id_card_rules(self):
         if self.document_type == "id_card":
             if not self.id_number or not PAN_RE.match(self.id_number):
-                raise ValueError("id_card needs an id_number like ABCDE1234F (5 letters, 4 digits, 1 letter)")
+                raise ValueError(
+                    "id_card needs an id_number like ABCDE1234F (5 letters, 4 digits, 1 letter)"
+                )
             if self.date_of_birth is None:
                 raise ValueError("id_card needs a date_of_birth")
         return self
@@ -137,9 +156,15 @@ class KycRecord(BaseModel):
 KYC_JSON_SCHEMA = {
     "type": "object",
     "properties": {
-        "document_type": {"type": "string", "enum": ["id_card", "utility_bill", "other"]},
+        "document_type": {
+            "type": "string",
+            "enum": ["id_card", "utility_bill", "other"],
+        },
         "full_name": {"type": "string"},
-        "date_of_birth": {"type": ["string", "null"], "description": "YYYY-MM-DD, or null if the document has none"},
+        "date_of_birth": {
+            "type": ["string", "null"],
+            "description": "YYYY-MM-DD, or null if the document has none",
+        },
         "id_number": {"type": ["string", "null"]},
         "address": {"type": ["string", "null"]},
     },
@@ -156,8 +181,12 @@ EXTRACT_SYSTEM = (
 
 
 # ---------------------------------------------------------------- three levels of asking for JSON
-def _call(client, model, messages, response_format=None, max_tokens=1500, temperature=0):
-    kwargs = dict(model=model, messages=messages, max_tokens=max_tokens, temperature=temperature)
+def _call(
+    client, model, messages, response_format=None, max_tokens=1500, temperature=0
+):
+    kwargs = dict(  # noqa: C408
+        model=model, messages=messages, max_tokens=max_tokens, temperature=temperature
+    )
     if response_format:
         kwargs["response_format"] = response_format
     r = client.chat.completions.create(**kwargs)
@@ -166,28 +195,48 @@ def _call(client, model, messages, response_format=None, max_tokens=1500, temper
 
 def level1_prompt_only(client, model, doc_text, extra_messages=()):
     """Level 1: ask politely. Nothing enforces anything."""
-    msgs = [{"role": "system", "content": EXTRACT_SYSTEM + " Reply with JSON only."},
-            {"role": "user", "content": doc_text}, *extra_messages]
+    msgs = [
+        {"role": "system", "content": EXTRACT_SYSTEM + " Reply with JSON only."},
+        {"role": "user", "content": doc_text},
+        *extra_messages,
+    ]
     return _call(client, model, msgs)
 
 
 def level2_json_mode(client, model, doc_text, extra_messages=()):
     """Level 2: JSON mode. The reply is guaranteed to be syntactically valid JSON - of any shape."""
-    msgs = [{"role": "system", "content": EXTRACT_SYSTEM + " Reply with a JSON object."},
-            {"role": "user", "content": doc_text}, *extra_messages]
+    msgs = [
+        {"role": "system", "content": EXTRACT_SYSTEM + " Reply with a JSON object."},
+        {"role": "user", "content": doc_text},
+        *extra_messages,
+    ]
     return _call(client, model, msgs, response_format={"type": "json_object"})
 
 
 def level3_schema(client, model, doc_text, extra_messages=()):
     """Level 3: schema-enforced. The provider constrains decoding to KYC_JSON_SCHEMA, so the
     SHAPE is guaranteed on models that support strict mode (gpt-oss-20b does)."""
-    msgs = [{"role": "system", "content": EXTRACT_SYSTEM},
-            {"role": "user", "content": doc_text}, *extra_messages]
-    rf = {"type": "json_schema", "json_schema": {"name": "kyc_record", "strict": True, "schema": KYC_JSON_SCHEMA}}
+    msgs = [
+        {"role": "system", "content": EXTRACT_SYSTEM},
+        {"role": "user", "content": doc_text},
+        *extra_messages,
+    ]
+    rf = {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "kyc_record",
+            "strict": True,
+            "schema": KYC_JSON_SCHEMA,
+        },
+    }
     return _call(client, model, msgs, response_format=rf)
 
 
-LEVELS = {"prompt": level1_prompt_only, "json_mode": level2_json_mode, "schema": level3_schema}
+LEVELS = {
+    "prompt": level1_prompt_only,
+    "json_mode": level2_json_mode,
+    "schema": level3_schema,
+}
 
 
 # ---------------------------------------------------------------- parse, validate, retry
@@ -199,27 +248,38 @@ def strip_fences(raw: str) -> str:
         raw = fenced.group(1).strip()
     start, end = raw.find("{"), raw.rfind("}")
     if start != -1 and end > start:
-        raw = raw[start:end + 1]
+        raw = raw[start : end + 1]
     return raw
 
 
-def parse_and_validate(raw: str) -> tuple[Optional[KycRecord], Optional[str]]:
+def parse_and_validate(raw: str) -> tuple[Optional[KycRecord], Optional[str]]:  # noqa: UP045
     """Returns (record, None) on success or (None, plain-English error) on failure.
     The error text is written so it can be fed straight back to the model on a retry."""
     try:
         data = json.loads(strip_fences(raw))
     except json.JSONDecodeError as e:
-        return None, f"The reply was not valid JSON ({e.msg}). Reply with the JSON object only."
+        return (
+            None,
+            f"The reply was not valid JSON ({e.msg}). Reply with the JSON object only.",
+        )
     if not isinstance(data, dict):
         return None, "The reply must be a single JSON object."
     try:
         return KycRecord(**data), None
     except ValidationError as e:
-        problems = "; ".join(f"{'.'.join(str(p) for p in err['loc']) or 'record'}: {err['msg']}" for err in e.errors())
-        return None, f"The JSON broke these rules: {problems}. Fix them and reply with the corrected JSON object only."
+        problems = "; ".join(
+            f"{'.'.join(str(p) for p in err['loc']) or 'record'}: {err['msg']}"
+            for err in e.errors()
+        )
+        return (
+            None,
+            f"The JSON broke these rules: {problems}. Fix them and reply with the corrected JSON object only.",
+        )
 
 
-def extract_validated(client, model, doc_text, mode: str = "schema", max_retries: int = 1) -> dict:
+def extract_validated(
+    client, model, doc_text, mode: str = "schema", max_retries: int = 1
+) -> dict:
     """Extract, validate, and on failure retry ONCE with the error message fed back.
     Returns {record, attempts, errors, raw, mode}. record is None if every attempt failed."""
     fn = LEVELS[mode]
@@ -228,10 +288,25 @@ def extract_validated(client, model, doc_text, mode: str = "schema", max_retries
         raw = fn(client, model, doc_text, extra_messages=extra)
         record, err = parse_and_validate(raw)
         if record is not None:
-            return {"record": record, "attempts": attempt, "errors": errors, "raw": raw, "mode": mode}
+            return {
+                "record": record,
+                "attempts": attempt,
+                "errors": errors,
+                "raw": raw,
+                "mode": mode,
+            }
         errors.append(err)
-        extra = [{"role": "assistant", "content": raw}, {"role": "user", "content": err}]
-    return {"record": None, "attempts": max_retries + 1, "errors": errors, "raw": raw, "mode": mode}
+        extra = [
+            {"role": "assistant", "content": raw},
+            {"role": "user", "content": err},
+        ]
+    return {
+        "record": None,
+        "attempts": max_retries + 1,
+        "errors": errors,
+        "raw": raw,
+        "mode": mode,
+    }
 
 
 def success_rate(client, model, doc_text, mode: str, runs: int = 5) -> dict:
