@@ -1,185 +1,117 @@
-# GenAI · Agentic AI · AI Agents — course repo
+# Generative AI & Agentic Systems Engineering Lab
 
-Instructor: **Ajit Byru** · `ajitbyru@gmail.com` · github.com/byruajit
+[![CI](https://github.com/lowkey999-netizen/genai-course-work/actions/workflows/ci.yml/badge.svg)](https://github.com/lowkey999-netizen/genai-course-work/actions/workflows/ci.yml)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
+![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)
+![pytest](https://img.shields.io/badge/tested_with-pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)
 
-This repository is the single source of truth for the course: every command shown in class is here, character for character. If a slide and this README disagree, the README wins.
+![Tech Stack](https://img.shields.io/badge/Tech_Stack-Python_•_Pydantic_•_Pytest_•_uv_•_Ollama_•_Groq_•_Gemini_•_GitHub_Actions-24292e?style=flat)
 
-**Rule for the whole course: every Python command starts with `uv run`.** Never plain `python`, never `conda`. Have Anaconda? Keep it — it is never used and never touched. See `(base)` in your prompt? Ignore it.
-
-> **Starting at Session 9?** Session 1's Git section is covered by the Git & GitHub webinar — watch it before Session 14. Do only step 8 of Session 1 (clone this repo), then all of Session 2's setup.
-
----
-
-## Session 1 — Git & GitHub
-
-Two repos live side by side in `Documents`: **genai-course-work** (yours — you push) and **genai-agents-course** (this one — you pull).
-
-| #   | Step                                                                                             | Command                                                                                                                                                                                               |
-| --- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Install Git and VS Code, then **close and reopen the terminal** (already have them? verify only) | `winget install --id Git.Git -e` · `winget install --id Microsoft.VisualStudioCode -e` · `git --version` · `code --version`                                                                           |
-| 2   | Identity — real name, professional email                                                         | `git config --global user.name "Your Name"` · `git config --global user.email "you@example.com"` · `git config --global init.defaultBranch main` · `git config --global core.autocrlf true` (Windows) |
-| 3   | Create **your** repo in the browser                                                              | github.com → New → `genai-course-work` → Public → tick "Add a README file" → Create                                                                                                                   |
-| 4   | Clone it                                                                                         | `cd ~\Documents` · `git clone https://github.com/<your-username>/genai-course-work.git` · `cd genai-course-work` · `code .`                                                                           |
-| 5   | First commit (edit README.md)                                                                    | `git status` · `git add README.md` · `git commit -m "Add intro to README"` · `git push`                                                                                                               |
-| 6   | Second commit (create `notes/session01.md`)                                                      | `git add .` · `git commit -m "Session 1 notes"` · `git push` · `git log --oneline`                                                                                                                    |
-| 7   | Branch, change, merge                                                                            | `git switch -c experiment` · edit · `git add . && git commit -m "Experiment"` · `git switch main` · `git merge experiment` · `git push` · `git branch -d experiment`                                  |
-| 8   | Clone this course repo alongside                                                                 | `cd ~\Documents` · `git clone https://github.com/byruajit/genai-agents-course.git` · `cd genai-agents-course` · `type .gitignore` · `git pull`                                                        |
-| 9   | **Checkpoint**                                                                                   | Your GitHub page shows ≥ 2 commits and the merge; `git config --global --list` shows your name and email                                                                                              |
-
-Start every session with `git pull` in this repo.
-
-**Secrets:** `.env` is in `.gitignore`, so `git add` ignores it. If a key ever reaches a commit it is public within minutes — revoke it in the Groq console and create a new one.
+An applied engineering repository exploring the mechanics of Large Language Models, high-dimensional vector spaces, provider routing, and autonomous agent architectures—built from first principles with automated CI verification.
 
 ---
 
-## Session 2 — set up your machine (Windows, PowerShell)
+## Architecture Overview
 
-Already have VS Code, Git or Python? Keep them. Skip the matching install line and run the version check only. Everyone runs steps 1, 2 and 5–8.
-
-| #   | Step                                                                                                                                                       | Command                                                                                                                     |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Install uv, then **close and reopen the terminal** (have uv? `uv self update`)                                                                             | `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 \| iex"` then `uv self version`                |
-| 1b  | Only if step 1 still says "not recognized" after reopening                                                                                                 | `[Environment]::SetEnvironmentVariable('Path', $env:Path + ';' + $HOME + '\.local\bin', 'User')` → reopen                   |
-| 2   | Python 3.12 via uv (do this even if you have Python; it never touches yours)                                                                               | `uv python install 3.12` then `uv python list`                                                                              |
-| 3   | Git and VS Code, then reopen the terminal (already installed? verify only)                                                                                 | `winget install --id Git.Git -e` · `winget install --id Microsoft.VisualStudioCode -e` · `git --version` · `code --version` |
-| 4   | Clone and open — never in `C:\WINDOWS\system32`                                                                                                            | `cd ~\Documents` · `git clone https://github.com/byruajit/genai-agents-course.git` · `cd genai-agents-course` · `code .`    |
-| 5   | Install pinned packages (VS Code terminal, Ctrl+`)                                                                                                         | `uv sync`                                                                                                                   |
-| 6   | Private config — paste **your own** Groq key as `API_KEY` (free: console.groq.com → API Keys → Create); do not touch `MODEL`; no quotes; no trailing space | `copy .env.example .env` (Mac/Linux: `cp .env.example .env`)                                                                |
-| 7   | First LLM call — read the token count                                                                                                                      | `uv run python hello.py`                                                                                                    |
-| 8   | **Checkpoint**                                                                                                                                             | `uv run pytest tests/test_setup.py` → `3 passed`                                                                            |
-| 9   | Background / homework                                                                                                                                      | ollama.com → install → `ollama pull llama3.2:3b`                                                                            |
-
-### Mac / Linux differences
-
-Step 1: `curl -LsSf https://astral.sh/uv/install.sh | sh` · Step 3: `xcode-select --install` (Mac) or `sudo apt install git` (Ubuntu); VS Code from code.visualstudio.com, then Command Palette → "Shell Command: Install code command in PATH" · Step 6: `cp` not `copy`. Everything else is identical.
-
-### Switching to Ollama (rate limits, or private data)
-
-In `.env`, comment the three Groq lines and uncomment the three Ollama lines. No code changes.
-
----
-
-## Troubleshooting — the three errors that cover almost everything
-
-**`uv` is not recognized** — you did not reopen the terminal. Close every terminal (including VS Code's) and open again. Still failing → step 1b.
-
-**401 invalid API key** — open `.env` (not `.env.example`). No quotes around the key, no trailing space, not the placeholder. If in doubt, create a new key in the Groq console and paste it again.
-
-**Ollama: model not found / connection refused** — not found → `ollama pull llama3.2:3b`. Connection refused → Ollama is not running: check the tray icon, or run `ollama serve` in a second terminal.
-
-**Model not found (404)** — the pinned model was retired. Run `uv run python list_models.py`, pick a current model, and tell the instructor; do not change `MODEL` on your own.
-
-Also seen: a warning that `UV_NATIVE_TLS` is deprecated — harmless, ignore. `uv version` (no dashes) errors outside a project — use `uv self version`.
-
----
-
-## Keys
-
-You create your own free Groq key at console.groq.com. It lives in `.env` and nowhere else. If it ever appears in chat, code or a screenshot, revoke it in the console immediately and create a new one.
-
-## Links
-
-- Community channel: _(added by instructor)_
-- Submission form: _(added by instructor)_
-- Baseline quiz: _(added by instructor)_
-- Fix videos: _(coming)_
-
-## Session 9b — tokens, cost, context, embeddings
-
-```powershell
-git pull
-uv sync                                  # adds jupyter, tiktoken, numpy, matplotlib
-ollama pull nomic-embed-text             # 270 MB, for the embeddings section (optional: a cached copy is used if Ollama is absent)
-uv run jupyter lab module01/s09_tokens.ipynb
-uv run pytest tests/test_s09.py          # checkpoint
+```mermaid
+flowchart LR
+    A["User Request"] --> B["Token Budgeter (tiktoken)"]
+    B --> C{"Provider Router"}
+    C -->|"Cloud API"| D["Groq / Gemini / OpenAI"]
+    C -->|"Local Inference"| E["Ollama (Self-Hosted)"]
+    D --> F["Pydantic Schema Validator"]
+    E --> F
+    F -->|"Valid"| G[("Deterministic JSON Output")]
+    F -->|"Schema Error"| H["Fallback & Retry Chain"]
+    H --> C
 ```
 
-Pre-read: `module01/reading_tokens.md` (10 minutes). First run of `tiktoken` downloads its encoding file once (needs internet).
+---
 
-## Session 10 — the model landscape
+## Engineering Focus
 
-```powershell
-git pull
+Rather than treating AI models as black boxes or writing brittle prompt scripts, this repository is a technical lab focused on:
+
+- **Foundational Mechanics:** Understanding context economics, token serialization (BPE), and high-dimensional vector geometry before making API calls.
+- **Provider & Model Diversity:** Architecting unified interfaces across cloud providers (Gemini, Groq, OpenAI) and local inference engines (Ollama).
+- **Deterministic Reliability:** Constraining probabilistic models into strict, machine-readable schemas using Pydantic, JSON Schema, and structured tool calling.
+- **Test-Driven AI Development:** Every concept is backed by unit tests and offline mock fixtures, verified automatically via GitHub Actions CI.
+
+---
+
+## Core Concepts & Implemented Modules
+
+| Module / Session                           | Core Technical Focus                                                            | Key Implementations & Artifacts                                                                                            | Test Suite          |
+| :----------------------------------------- | :------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------- | :------------------ |
+| **Session 09b: Tokens & Embeddings**       | BPE tokenization, context budgeting, token-to-byte ratios, pricing estimation   | [`s09_tokens.ipynb`](module01/s09_tokens.ipynb)<br>• [`tokens_utils.py`](module01/tokens_utils.py)                         | `tests/test_s09.py` |
+| **Session 10: Model Landscape**            | Model comparison matrix, throughput/latency benchmarks, capability tiers        | [`s10_model_matrix.ipynb`](module01/s10_model_matrix.ipynb)<br>• [`landscape_utils.py`](module01/landscape_utils.py)       | `tests/test_s10.py` |
+| **Session 11: Multi-Provider Routing**     | Unified provider interfaces, temperature sweeps, fallback chains                | [`s11_providers.ipynb`](module01/s11_providers.ipynb)<br>• [`providers_utils.py`](module01/providers_utils.py)             | `tests/test_s11.py` |
+| **Session 12: Local Models**               | Self-hosted inference via Ollama, latency benchmarks, edge deployment tradeoffs | [`s12_local_models.ipynb`](module01/s12_local_models.ipynb)<br>• [`local_models_utils.py`](module01/local_models_utils.py) | `tests/test_s12.py` |
+| **Session 13: Vision & Structured Output** | Multimodal OCR, ID card / document parsing, strict Pydantic extraction          | [`s13_vision_structured.ipynb`](module01/s13_vision_structured.ipynb)<br>• [`vision_utils.py`](module01/vision_utils.py)   | `tests/test_s13.py` |
+
+---
+
+## Key Engineering Takeaways
+
+- **Vector Geometry & High Dimensions:** In 1536-dimensional embedding spaces, Euclidean distance suffers from distance concentration (the curse of dimensionality). Cosine similarity normalizes vector magnitude, capturing pure semantic orientation and direction.
+- **Context Window Economics:** Pre-computing Byte Pair Encoding (BPE) counts locally prevents silent prompt truncation, mitigates context drift, and enforces strict operational cost budgets.
+- **Deterministic Output Guarantees:** Unconstrained LLM outputs inevitably break downstream systems. Enforcing Pydantic models with constrained regex patterns and enum types turns unstructured text into machine-readable JSON contracts.
+- **Hybrid Cloud vs. Local Routing:** Cloud endpoints offer scale and frontier intelligence, while local Ollama instances guarantee data privacy and zero inference costs. Routing dynamically based on task sensitivity balances performance and budget.
+
+---
+
+## Interactive Browser Visualizers
+
+To build intuition for the underlying mathematics, standalone HTML tools run entirely client-side in the browser:
+
+- **[Complete Embedding & SVD Pipeline Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/pipeline_visualizer.html)**  
+  _Interactive trace: `Word → Vector Sliders → 768D Space → PCA Shadow → SVD Engine → 2D Projection`._
+- **[Interactive Embedding & PCA Journey](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/interactive_embedding_pca_journey.html)**  
+  _Visual explanation of how dimensionality reduction flattens high-dimensional semantic clouds._
+- **[Embeddings & Dimensions Sliders Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/embeddings_visualizer.html)**  
+  _Interactive exploration of cosine similarity angles and coordinate sliders._
+
+_(Explore the full visual guide and datasets in [`module01/README.md`](module01/README.md).)_
+
+---
+
+## Architecture & Engineering Practices
+
+- **Automated CI (GitHub Actions):** Every commit triggers an automated pipeline running **65+ unit and logic tests** offline, ensuring business logic and schema parsers never regress.
+- **Modern Python Toolchain:** Managed via [`uv`](https://docs.astral.sh/uv/) for fast virtual environment resolution and deterministic dependency locking.
+- **Upstream Sync Architecture:** Employs a dual-branch Git pattern (`main` vs `upstream-sync`), keeping personal portfolio engineering and upstream syllabus updates cleanly decoupled.
+
+---
+
+## Quickstart
+
+### Prerequisites
+
+- Python 3.12+
+- [`uv`](https://docs.astral.sh/uv/) installed
+
+### 1. Clone & Sync Environment
+
+```bash
+git clone https://github.com/lowkey999-netizen/genai-course-work.git
+cd genai-course-work
 uv sync
-uv run jupyter lab module01/s10_model_matrix.ipynb
-uv run pytest tests/test_s10.py          # checkpoint (works offline)
 ```
 
-Pre-read: `module01/reading_landscape.md` (10 minutes). Terms: `module01/terms_s10.md`. Catalog numbers are **indicative** — verifying two of them is part of the lab. To submit: run the last notebook cell, then upload `module01/s10_matrix_output.md` through the submission form (personal repositories start at Session 14).
+### 2. Run the Offline Test Suite
 
-## Showcase A2 — Insurance (workflow)
+Run the verified offline test suite instantly without needing API keys or incurring costs:
 
-```powershell
-uv run python showcase/a2_insurance/insurance_claim.py --all
-uv run pytest showcase/a2_insurance/test_a2_insurance.py
+```bash
+uv run pytest tests/ showcase/ --ignore=tests/test_setup.py -k "not live and not estimate_matches and not test_model_answers" -v
 ```
 
-Free-text claim -> the model extracts a structured form -> code routes by severity -> a template answers.
-First showcase in the course's 4x4 matrix (row A: workflow, column: Insurance). See showcase/a2_insurance/README.md.
+### 3. Run Live Provider Tests (Optional)
 
-## Session 11 — multi-provider calls
+To run live integration tests against real models:
 
-```powershell
-git pull
-uv sync
-uv run jupyter lab module01/s11_providers.ipynb
-uv run pytest tests/test_s11.py          # checkpoint (offline-safe)
+```bash
+# Copy template and add your API keys (Ollama, Gemini, Groq, or OpenAI)
+cp .env.example .env
+uv run pytest
 ```
-
-Pre-read: `module01/reading_providers.md`. You will need a free Gemini key today (aistudio.google.com) in
-addition to your existing Groq key — see `.env.example`. Terms: `module01/terms_s11.md`.
-
-## Session 12 — local and open models
-
-```powershell
-git pull
-uv sync
-ollama pull qwen2.5:7b          # a second local model, for comparison (do this at home)
-uv run jupyter lab module01/s12_local_models.ipynb
-uv run pytest tests/test_s12.py          # checkpoint (offline-safe)
-```
-
-Pre-read: `module01/reading_local_models.md`. Terms: `module01/terms_s12.md`.
-
-## Session 13 — images in, structured data out
-
-```powershell
-git pull
-uv sync                                  # no new packages (Pillow already comes with matplotlib)
-uv run jupyter lab module01/s13_vision_structured.ipynb
-uv run pytest tests/test_s13.py          # checkpoint (offline-safe)
-```
-
-Pre-read: `module01/reading_structured.md`. Terms: `module01/terms_s13.md`. The sample documents are **synthetic**
-(`module01/sample_docs/`) — fictional people, fake numbers, a SAMPLE watermark.
-
-## Showcase A3 — Healthcare (workflow)
-
-```powershell
-uv run python showcase/a3_healthcare/appointment_flow.py --all
-uv run pytest showcase/a3_healthcare/test_a3_healthcare.py
-```
-
-Safety rule -> intent router -> slot filling -> booking -> confirmation. The model reads; the code decides.
-See `showcase/a3_healthcare/README.md`.
-
-## Layout
-
-``` text
-module01/                   Session 9b notebook, helpers, pre-read
-hello.py                    Session 2 first call
-list_models.py              which models your key can use
-tests/test_setup.py         Session 2 checkpoint
-tests/test_s09.py           Session 9b checkpoint
-tests/test_s10.py           Session 10 checkpoint
-showcase/a2_insurance/      Showcase A2 (Insurance workflow) + its own tests
-showcase/a3_healthcare/     Showcase A3 (Healthcare workflow) + its own tests
-tests/test_s11.py           Session 11 checkpoint
-tests/test_s12.py           Session 12 checkpoint
-tests/test_s13.py           Session 13 checkpoint
-cheatsheet/python-for-agents.md
-.env.example                copy to .env
-pyproject.toml              pinned dependencies (uv sync)
-```
-
-Modules are added as the course progresses (`module01/ … module14/`).
