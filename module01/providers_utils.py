@@ -1,5 +1,6 @@
 """Session 11 helpers — three providers, one client library, and a tiny classifier
 used for the temperature sweep. Imported by the notebook and the test."""
+
 from __future__ import annotations
 
 import os
@@ -21,7 +22,9 @@ def gemini_client() -> OpenAI:
     from a free key at aistudio.google.com. Same client library, different base_url."""
     key = os.getenv("GEMINI_API_KEY")
     if not key or "paste_your" in key:
-        raise RuntimeError("GEMINI_API_KEY is not set in .env — see the .env.example block.")
+        raise RuntimeError(
+            "GEMINI_API_KEY is not set in .env — see the .env.example block."
+        )
     return OpenAI(base_url=GEMINI_BASE_URL, api_key=key)
 
 
@@ -38,18 +41,28 @@ def list_gemini_models() -> list[str]:
 
 
 # ---------------------------------------------------------------- one call, any provider
-def ask(client: OpenAI, model: str, system: str, user: str, *, temperature: float = 0.0,
-        max_tokens: int = 200, stop: list[str] | None = None) -> dict:
+def ask(
+    client: OpenAI,
+    model: str,
+    system: str,
+    user: str,
+    *,
+    temperature: float = 0.0,
+    max_tokens: int = 200,
+    stop: list[str] | None = None,
+) -> dict:
     """The one function every provider slide boils down to: same shape, different client."""
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": user})
-    kwargs = dict(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens)
+    kwargs = dict(
+        model=model, messages=messages, temperature=temperature, max_tokens=max_tokens
+    )
     if stop:
         kwargs["stop"] = stop
     r = client.chat.completions.create(**kwargs)
-    
+
     return {
         "text": r.choices[0].message.content,
         "prompt_tokens": r.usage.prompt_tokens,
@@ -65,8 +78,21 @@ CLASSIFIER_SYSTEM = (
 )
 
 
-def classify_ticket(client: OpenAI, model: str, ticket_text: str, *, temperature: float = 0.0) -> dict:
+def classify_ticket(
+    client: OpenAI, model: str, ticket_text: str, *, temperature: float = 0.0
+) -> dict:
     """Same shape as ask(), specialised for the sweep: one word in, one label out."""
-    result = ask(client, model, CLASSIFIER_SYSTEM, ticket_text, temperature=temperature, max_tokens=300)
+    result = ask(
+        client,
+        model,
+        CLASSIFIER_SYSTEM,
+        ticket_text,
+        temperature=temperature,
+        max_tokens=300,
+    )
     label = result["text"].strip().lower().strip(".")
-    return {**result, "label": label, "valid": label in {"billing", "technical", "general"}}
+    return {
+        **result,
+        "label": label,
+        "valid": label in {"billing", "technical", "general"},
+    }
