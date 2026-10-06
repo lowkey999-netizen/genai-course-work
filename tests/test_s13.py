@@ -4,12 +4,28 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "module01"))
-from vision_utils import (KYC_JSON_SCHEMA, KycRecord, SAMPLE_DIR, TRANSCRIBE_PROMPT, compare_to_truth,  # noqa: E402
-                          encode_image, extract_validated, find_vision_model, level3_schema, parse_and_validate,
-                          sample_transcript, strip_fences, vision_messages)
+from vision_utils import (  # noqa: E402
+    KYC_JSON_SCHEMA,
+    SAMPLE_DIR,
+    TRANSCRIBE_PROMPT,
+    KycRecord,
+    compare_to_truth,
+    encode_image,
+    extract_validated,
+    find_vision_model,
+    level3_schema,
+    parse_and_validate,
+    sample_transcript,
+    strip_fences,
+    vision_messages,
+)
 
 GOOD = '{"document_type":"id_card","full_name":"ANANYA RAO VEMULA","date_of_birth":"1994-03-14","id_number":"ABCDE1234F","address":null}'
 

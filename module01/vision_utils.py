@@ -26,6 +26,7 @@ SAMPLE_DIR = Path(__file__).with_name("sample_docs")
 VISION_PREFERENCES = (
     "meta-llama/llama-4-scout-17b-16e-instruct",
     "meta-llama/llama-4-maverick-17b-128e-instruct",
+    "qwen/qwen3.8-27b"
 )
 
 
