@@ -5,13 +5,13 @@ steps), column Insurance.
 
 **The pipeline:**
 
-```
+``` text
 free-text claim  -->  model extracts a structured form  -->  code routes by severity  -->  template answers
                        (tokens in, JSON out)                 (no model involved)
 ```
 
 The model is given one job — read messy human text and turn it into a fixed JSON
-shape. It never decides what happens *after* that. A plain Python `if` reads the
+shape. It never decides what happens _after_ that. A plain Python `if` reads the
 `severity` and `injuries` fields and picks one of two canned responses. That fixed,
 code-decided sequence is what makes this a **workflow**, not an agent — compare with
 row B (`showcase/b2_insurance`, from Session 21 onward), where the model itself
@@ -19,11 +19,11 @@ chooses which tool to call next on the same kind of problem.
 
 ## Files
 
-| File | What it is |
-|---|---|
-| `claims_data.py` | Eight mock claim descriptions, free text, as a customer would actually type them — a spread of minor, major, injury, no-injury, and one ambiguous and one suspicious case. |
-| `insurance_claim.py` | The pipeline: `extract_claim_form` (the only step that calls the model), `route_claim` (plain code, no model), and `process_claim` (runs both in order and prints what happened at each step). |
-| `test_a2_insurance.py` | Offline tests for the schema and the router; two live tests (skipped automatically with no API key) that check real extraction on a clear minor and a clear major claim. |
+| File                   | What it is                                                                                                                                                                                     |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claims_data.py`       | Eight mock claim descriptions, free text, as a customer would actually type them — a spread of minor, major, injury, no-injury, and one ambiguous and one suspicious case.                     |
+| `insurance_claim.py`   | The pipeline: `extract_claim_form` (the only step that calls the model), `route_claim` (plain code, no model), and `process_claim` (runs both in order and prints what happened at each step). |
+| `test_a2_insurance.py` | Offline tests for the schema and the router; two live tests (skipped automatically with no API key) that check real extraction on a clear minor and a clear major claim.                       |
 
 ## Run it
 
