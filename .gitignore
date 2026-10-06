@@ -9,7 +9,6 @@ agent.py
 GEMINI.md
 .continueignore
 .agentignore
-.github/
 .ipynb_checkpoints/
 module01/Pipeline_visualizer_explanation.md
 .geminiignore

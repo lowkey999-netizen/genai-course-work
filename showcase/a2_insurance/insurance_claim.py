@@ -17,6 +17,7 @@ Run with:
     uv run python showcase/a2_insurance/insurance_claim.py --claim major_injury
     uv run python showcase/a2_insurance/insurance_claim.py --all
 """
+
 from __future__ import annotations
 
 import argparse
@@ -30,7 +31,7 @@ from openai import OpenAI
 from pydantic import BaseModel, Field, ValidationError
 
 sys.path.insert(0, str(Path(__file__).parent))
-from claims_data import CLAIMS, CLAIMS_BY_ID  # noqa: E402
+from claims_data import CLAIMS, CLAIMS_BY_ID
 
 # ---------------------------------------------------------------- config (same pattern as hello.py)
 load_dotenv(override=True)  # .env wins over anything an editor put in the environment
@@ -42,12 +43,12 @@ SYSTEM_PROMPT = """You are a claims intake assistant for a motor insurer.
 Read the customer's free-text claim description and extract a structured form.
 Reply with JSON only — no markdown fences, no commentary, just the object:
 {"damage": "<short description of vehicle damage>",
- "injuries": <true or false>,
- "severity": "<minor or major>"}
+    "injuries": <true or false>,
+    "severity": "<minor or major>"}
 
 Rules for severity:
 - "major" if: any injury is mentioned, the vehicle is described as not drivable,
-  a total loss, badly damaged, or multiple vehicles are involved.
+    a total loss, badly damaged, or multiple vehicles are involved.
 - "minor" otherwise (small dents, scratches, glass chips, no injuries).
 When in doubt between minor and major, choose major — a human should review it."""
 
@@ -120,19 +121,34 @@ def process_claim(claim_text: str, *, verbose: bool = True) -> dict:
         print(f"  injuries:  {form.injuries}")
         print(f"  severity:  {form.severity}")
         print(f"\nTOKENS (step 1 only — the only step that costs anything):")
-        print(f"  prompt={usage['prompt_tokens']}  completion={usage['completion_tokens']}  "
-              f"total={usage['total_tokens']}")
+        print(
+            f"  prompt={usage['prompt_tokens']}  completion={usage['completion_tokens']}  "
+            f"total={usage['total_tokens']}"
+        )
         print(f"\nROUTE (code, step 2 — the model never sees this decision): {route}")
         print(f"\nRESPONSE (template, step 3):\n  {response}")
 
-    return {"form": form.model_dump(), "usage": usage, "route": route, "response": response}
+    return {
+        "form": form.model_dump(),
+        "usage": usage,
+        "route": route,
+        "response": response,
+    }
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--claim", choices=list(CLAIMS_BY_ID), default="minor_no_injury",
-                         help="which mock claim to run (default: minor_no_injury)")
-    parser.add_argument("--all", action="store_true", help="run every mock claim, one after another")
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "--claim",
+        choices=list(CLAIMS_BY_ID),
+        default="minor_no_injury",
+        help="which mock claim to run (default: minor_no_injury)",
+    )
+    parser.add_argument(
+        "--all", action="store_true", help="run every mock claim, one after another"
+    )
     args = parser.parse_args()
 
     if args.all:

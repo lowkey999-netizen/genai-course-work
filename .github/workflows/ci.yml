@@ -1,0 +1,32 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv package manager
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies from lockfile
+        run: uv sync
+
+      - name: Run automated test suite
+        run: uv run pytest tests/ showcase/ -k "not live and not estimate_matches and not test_model_answers" -v
+        env:
+          API_KEY: mock_key_for_ci
+          BASE_URL: https://api.groq.com/openai/v1
+          MODEL: openai/gpt-oss-20b
