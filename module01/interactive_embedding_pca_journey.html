@@ -516,6 +516,14 @@
       vCtx.fillStyle = '#f8fafc';
       vCtx.font = 'bold 11px sans-serif';
       vCtx.fillText(`Vector [${vecX.toFixed(1)}, ${vecY.toFixed(1)}, ${vecZ.toFixed(1)}]`, endX + 8, endY - 4);
+
+      // Canvas Watermark
+      vCtx.save();
+      vCtx.font = '10px monospace';
+      vCtx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      vCtx.textAlign = 'right';
+      vCtx.fillText('© Bhargava Shanmukha | genai-course-work', w - 10, h - 10);
+      vCtx.restore();
     }
 
     // --- STAGE 4: VECTOR MATH ANIMATION ---
@@ -554,6 +562,14 @@
         mCtx.font = '11px sans-serif';
         mCtx.fillText(p.name, cx + p.x + 8, cy + p.y + 4);
       });
+
+      // Canvas Watermark
+      mCtx.save();
+      mCtx.font = '10px monospace';
+      mCtx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      mCtx.textAlign = 'right';
+      mCtx.fillText('© Bhargava Shanmukha | genai-course-work', w - 10, h - 10);
+      mCtx.restore();
     }
 
     function runVectorMathAnimation() {
@@ -691,6 +707,14 @@
           sCtx.stroke();
         });
       }
+
+      // Canvas Watermark
+      sCtx.save();
+      sCtx.font = '10px monospace';
+      sCtx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      sCtx.textAlign = 'right';
+      sCtx.fillText('© Bhargava Shanmukha | genai-course-work', w - 10, h - 10);
+      sCtx.restore();
     }
 
     window.onload = function() {
@@ -699,5 +723,19 @@
       setSvdStep(1);
     };
   </script>
+
+  <!-- Method 1: Floating Author Watermark Badge -->
+  <div style="position: fixed; bottom: 12px; right: 16px; z-index: 9999; pointer-events: auto;">
+    <a href="https://github.com/lowkey999-netizen" target="_blank" 
+       style="display: flex; align-items: center; gap: 8px; padding: 6px 14px; 
+              background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(99, 102, 241, 0.4); 
+              border-radius: 9999px; text-decoration: none; backdrop-filter: blur(8px); 
+              box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-family: system-ui, -apple-system, sans-serif; transition: all 0.2s ease;">
+      <span style="display: inline-block; width: 8px; height: 8px; background: #6366f1; border-radius: 50%; box-shadow: 0 0 8px #6366f1;"></span>
+      <span style="font-size: 11px; font-weight: 500; color: #94a3b8; letter-spacing: 0.2px;">
+        Created by <strong style="color: #f8fafc; font-weight: 600;">Bhargava Shanmukha</strong>
+      </span>
+    </a>
+  </div>
 </body>
 </html>

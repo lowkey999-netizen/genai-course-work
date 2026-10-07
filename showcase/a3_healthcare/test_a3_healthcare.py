@@ -1,24 +1,18 @@
 """Checkpoint for Showcase A3. Run with:  uv run pytest showcase/a3_healthcare/test_a3_healthcare.py
 The workflow's own logic is tested offline with a keyword stand-in for the model; live tests skip without a key."""
-
 import os
 import sys
 from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
+
+load_dotenv(override=True)   # read .env BEFORE the skip checks below, so a key stored only in .env is seen
 
 sys.path.insert(0, str(Path(__file__).parent))
-from appointment_flow import (
-    Slots,
-    alternatives,
-    confirmation,
-    find_slot,
-    has_emergency,
-    make_model_fns,
-    next_missing,
-    run_dialogue,
-)
-from appointments_data import SCENARIOS
+from appointment_flow import (Slots, alternatives, confirmation, find_slot, has_emergency,  # noqa: E402
+                              make_model_fns, next_missing, run_dialogue)
+from appointments_data import SCENARIOS  # noqa: E402
 
 
 class FakeModel:
@@ -30,37 +24,23 @@ class FakeModel:
     def classify(self, text):
         self.classify_calls += 1
         t = text.lower()
-        if "cancel" in t:
-            return "cancel"
-        if "weather" in t:
-            return "other"
+        if "cancel" in t: return "cancel"
+        if "weather" in t: return "other"
         return "book"
 
     def extract(self, text):
         self.extract_calls += 1
         t, found = text.lower(), {}
-        for spec, words in {
-            "dermatology": ["skin"],
-            "orthopedics": ["knee", "orthopedic"],
-            "cardiology": ["cardiolog"],
-            "general_physician": ["general physician"],
-        }.items():
-            if any(w in t for w in words):
-                found["specialty"] = spec
+        for spec, words in {"dermatology": ["skin"], "orthopedics": ["knee", "orthopedic"], "cardiology": ["cardiolog"],
+                            "general_physician": ["general physician"]}.items():
+            if any(w in t for w in words): found["specialty"] = spec
         for day in ["monday", "tuesday", "wednesday", "thursday", "friday"]:
-            if day in t:
-                found["day"] = day
+            if day in t: found["day"] = day
         for tod in ["morning", "afternoon", "evening"]:
-            if tod in t:
-                found["time_of_day"] = tod
-        if "name is " in t:
-            found["patient_name"] = text.split("name is ")[-1].strip().title()
-        if "i'm " in t:
-            found["patient_name"] = (
-                text.lower().split("i'm ")[1].split(" and")[0].title()
-            )
-        if t.strip() in ("priya menon", "sneha reddy"):
-            found["patient_name"] = text.strip()
+            if tod in t: found["time_of_day"] = tod
+        if "name is " in t: found["patient_name"] = text.split("name is ")[-1].strip().title()
+        if "i'm " in t: found["patient_name"] = text.lower().split("i'm ")[1].split(" and")[0].title()
+        if t.strip() in ("priya menon", "sneha reddy"): found["patient_name"] = text.strip()
         return found
 
 
@@ -73,18 +53,10 @@ def run(name):
 def test_next_missing_follows_the_fixed_order():
     s = Slots()
     order = []
-    for key, value in [
-        ("specialty", "cardiology"),
-        ("day", "monday"),
-        ("time_of_day", "morning"),
-        ("patient_name", "A B"),
-    ]:
+    for key, value in [("specialty", "cardiology"), ("day", "monday"), ("time_of_day", "morning"), ("patient_name", "A B")]:
         order.append(next_missing(s))
         setattr(s, key, value)
-    assert (
-        order == ["specialty", "day", "time_of_day", "patient_name"]
-        and next_missing(s) is None
-    )
+    assert order == ["specialty", "day", "time_of_day", "patient_name"] and next_missing(s) is None
 
 
 def test_merge_newest_wins_and_null_never_erases():
@@ -98,9 +70,7 @@ def test_emergency_words_are_detected_case_insensitively():
 
 
 def test_find_slot_and_alternatives():
-    s = Slots(
-        specialty="cardiology", day="monday", time_of_day="morning", patient_name="A B"
-    )
+    s = Slots(specialty="cardiology", day="monday", time_of_day="morning", patient_name="A B")
     row = find_slot(s)
     assert row and row[0] == "Dr. Rao" and "Dr. Rao" in confirmation(row, s)
     s.day = "friday"
@@ -117,21 +87,13 @@ def test_emergency_is_decided_by_code_and_the_model_is_never_called():
 def test_happy_path_asks_in_code_order_then_books():
     result, _ = run("happy_path")
     bot = [t for who, t in result["transcript"] if who == "bot"]
-    assert (
-        "kind of doctor" in bot[0]
-        and "day" in bot[1].lower()
-        and "morning" in bot[2]
-        and "full name" in bot[3]
-    )
+    assert "kind of doctor" in bot[0] and "day" in bot[1].lower() and "morning" in bot[2] and "full name" in bot[3]
     assert result["outcome"] == "booked" and result["booking"][0] == "Dr. Iyer"
 
 
 def test_all_in_one_message_books_without_any_follow_up_question():
     result, _ = run("all_in_one")
-    assert (
-        result["outcome"] == "booked"
-        and len([1 for who, _ in result["transcript"] if who == "bot"]) == 1
-    )
+    assert result["outcome"] == "booked" and len([1 for who, _ in result["transcript"] if who == "bot"]) == 1
 
 
 def test_vague_then_filled_still_books():
@@ -156,15 +118,7 @@ def test_off_topic_is_declined():
 
 def test_every_scenario_ends_in_a_known_outcome():
     for name in SCENARIOS:
-        assert run(name)[0]["outcome"] in {
-            "booked",
-            "no_slot",
-            "handoff",
-            "emergency",
-            "out_of_scope",
-            "info",
-            "incomplete",
-        }
+        assert run(name)[0]["outcome"] in {"booked", "no_slot", "handoff", "emergency", "out_of_scope", "info", "incomplete"}
 
 
 # ---------------------------------------------------------------- the real model wrappers, with a fake client
@@ -176,11 +130,9 @@ class _FakeClient:
         class _C:
             def create(self, **kw):
                 text = outer.replies.pop(0)
-                if isinstance(text, Exception):
-                    raise text
+                if isinstance(text, Exception): raise text
                 msg = type("M", (), {"content": text})()
                 return type("R", (), {"choices": [type("C", (), {"message": msg})()]})()
-
         self.chat = type("Chat", (), {"completions": _C()})()
 
 
@@ -190,27 +142,13 @@ def test_classify_falls_back_to_other_for_an_unknown_label():
 
 
 def test_extract_drops_values_outside_the_allowed_lists_but_keeps_the_name():
-    _, extract = make_model_fns(
-        _FakeClient(
-            [
-                '{"specialty":"astrology","day":"monday","time_of_day":null,"patient_name":"A B"}'
-            ]
-        ),
-        "m",
-    )
+    _, extract = make_model_fns(_FakeClient(['{"specialty":"astrology","day":"monday","time_of_day":null,"patient_name":"A B"}']), "m")
     found = extract("x")
-    assert (
-        found["specialty"] is None
-        and found["day"] == "monday"
-        and found["patient_name"] == "A B"
-    )
+    assert found["specialty"] is None and found["day"] == "monday" and found["patient_name"] == "A B"
 
 
 def test_structured_falls_back_to_json_mode_when_strict_schema_is_rejected():
-    classify, _ = make_model_fns(
-        _FakeClient([RuntimeError("strict not supported"), 'Sure: {"intent": "book"}']),
-        "m",
-    )
+    classify, _ = make_model_fns(_FakeClient([RuntimeError("strict not supported"), 'Sure: {"intent": "book"}']), "m")
     assert classify("x") == "book"
 
 
@@ -222,11 +160,7 @@ HAS_KEY = bool(os.getenv("API_KEY")) and "paste_your" not in os.getenv("API_KEY"
 def test_live_all_in_one_booking():
     from dotenv import load_dotenv
     from openai import OpenAI
-
     load_dotenv(override=True)
-    classify, extract = make_model_fns(
-        OpenAI(base_url=os.getenv("BASE_URL"), api_key=os.getenv("API_KEY")),
-        os.getenv("MODEL"),
-    )
+    classify, extract = make_model_fns(OpenAI(base_url=os.getenv("BASE_URL"), api_key=os.getenv("API_KEY")), os.getenv("MODEL"))
     result = run_dialogue(SCENARIOS["all_in_one"], classify, extract, verbose=False)
     assert result["outcome"] == "booked"

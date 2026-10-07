@@ -318,6 +318,14 @@
                 ctx3D.fillText(p.label, p.x + 8, p.y + 4);
             });
 
+            // Canvas Watermark
+            ctx3D.save();
+            ctx3D.font = '10px monospace';
+            ctx3D.fillStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx3D.textAlign = 'right';
+            ctx3D.fillText('© Bhargava Shanmukha | genai-course-work', canvas3D.width - 10, canvas3D.height - 10);
+            ctx3D.restore();
+
             requestAnimationFrame(render3D);
         }
         render3D();
@@ -375,6 +383,14 @@
             projPts.forEach(p => {
                 ctxPCA.beginPath(); ctxPCA.arc(p.x, p.y, 2 * p.scale, 0, Math.PI*2); ctxPCA.fill();
             });
+
+            // Canvas Watermark
+            ctxPCA.save();
+            ctxPCA.font = '10px monospace';
+            ctxPCA.fillStyle = 'rgba(255, 255, 255, 0.35)';
+            ctxPCA.textAlign = 'right';
+            ctxPCA.fillText('© Bhargava Shanmukha | genai-course-work', canvasPCA.width - 10, canvasPCA.height - 10);
+            ctxPCA.restore();
 
             requestAnimationFrame(renderPCA);
         }
@@ -469,10 +485,32 @@
             drawGrid(ctxSVD, [m11, m21, m12, m22], 'rgba(59, 130, 246, 0.3)');
             ctxSVD.restore();
 
+            // Canvas Watermark
+            ctxSVD.save();
+            ctxSVD.font = '10px monospace';
+            ctxSVD.fillStyle = 'rgba(255, 255, 255, 0.35)';
+            ctxSVD.textAlign = 'right';
+            ctxSVD.fillText('© Bhargava Shanmukha | genai-course-work', canvasSVD.width - 10, canvasSVD.height - 10);
+            ctxSVD.restore();
+
             requestAnimationFrame(renderSVD);
         }
         renderSVD();
 
     </script>
+
+    <!-- Method 1: Floating Author Watermark Badge -->
+    <div style="position: fixed; bottom: 12px; right: 16px; z-index: 9999; pointer-events: auto;">
+        <a href="https://github.com/lowkey999-netizen" target="_blank" 
+           style="display: flex; align-items: center; gap: 8px; padding: 6px 14px; 
+                  background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(59, 130, 246, 0.4); 
+                  border-radius: 9999px; text-decoration: none; backdrop-filter: blur(8px); 
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-family: system-ui, -apple-system, sans-serif; transition: all 0.2s ease;">
+            <span style="display: inline-block; width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 8px #3b82f6;"></span>
+            <span style="font-size: 11px; font-weight: 500; color: #94a3b8; letter-spacing: 0.2px;">
+                Created by <strong style="color: #f8fafc; font-weight: 600;">Bhargava Shanmukha</strong>
+            </span>
+        </a>
+    </div>
 </body>
 </html>
