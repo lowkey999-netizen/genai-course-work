@@ -41,13 +41,15 @@ Rather than treating AI models as black boxes or writing brittle prompt scripts,
 
 ## Core Concepts & Implemented Modules
 
-| Module / Session                           | Core Technical Focus                                                            | Key Implementations & Artifacts                                                                                            | Test Suite          |
-| :----------------------------------------- | :------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------- | :------------------ |
-| **Session 09b: Tokens & Embeddings**       | BPE tokenization, context budgeting, token-to-byte ratios, pricing estimation   | [`s09_tokens.ipynb`](module01/s09_tokens.ipynb)<br>• [`tokens_utils.py`](module01/tokens_utils.py)                         | `tests/test_s09.py` |
-| **Session 10: Model Landscape**            | Model comparison matrix, throughput/latency benchmarks, capability tiers        | [`s10_model_matrix.ipynb`](module01/s10_model_matrix.ipynb)<br>• [`landscape_utils.py`](module01/landscape_utils.py)       | `tests/test_s10.py` |
-| **Session 11: Multi-Provider Routing**     | Unified provider interfaces, temperature sweeps, fallback chains                | [`s11_providers.ipynb`](module01/s11_providers.ipynb)<br>• [`providers_utils.py`](module01/providers_utils.py)             | `tests/test_s11.py` |
-| **Session 12: Local Models**               | Self-hosted inference via Ollama, latency benchmarks, edge deployment tradeoffs | [`s12_local_models.ipynb`](module01/s12_local_models.ipynb)<br>• [`local_models_utils.py`](module01/local_models_utils.py) | `tests/test_s12.py` |
-| **Session 13: Vision & Structured Output** | Multimodal OCR, ID card / document parsing, strict Pydantic extraction          | [`s13_vision_structured.ipynb`](module01/s13_vision_structured.ipynb)<br>• [`vision_utils.py`](module01/vision_utils.py)   | `tests/test_s13.py` |
+| Module / Session                           | Core Technical Focus                                                            | Key Implementations & Artifacts                                                                                                        | Test Suite          |
+| :----------------------------------------- | :------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------- | :------------------ |
+| **Session 09b: Tokens & Embeddings**       | BPE tokenization, context budgeting, token-to-byte ratios, pricing estimation   | [`s09_tokens.ipynb`](module01/s09_tokens.ipynb)<br>• [`tokens_utils.py`](module01/tokens_utils.py)                                     | `tests/test_s09.py` |
+| **Session 10: Model Landscape**            | Model comparison matrix, throughput/latency benchmarks, capability tiers        | [`s10_model_matrix.ipynb`](module01/s10_model_matrix.ipynb)<br>• [`landscape_utils.py`](module01/landscape_utils.py)                   | `tests/test_s10.py` |
+| **Session 11: Multi-Provider Routing**     | Unified provider interfaces, temperature sweeps, fallback chains                | [`s11_providers.ipynb`](module01/s11_providers.ipynb)<br>• [`providers_utils.py`](module01/providers_utils.py)                         | `tests/test_s11.py` |
+| **Session 12: Local Models**               | Self-hosted inference via Ollama, latency benchmarks, edge deployment tradeoffs | [`s12_local_models.ipynb`](module01/s12_local_models.ipynb)<br>• [`local_models_utils.py`](module01/local_models_utils.py)             | `tests/test_s12.py` |
+| **Session 13: Vision & Structured Output** | Multimodal OCR, ID card / document parsing, strict Pydantic extraction          | [`s13_vision_structured.ipynb`](module01/s13_vision_structured.ipynb)<br>• [`vision_utils.py`](module01/vision_utils.py)               | `tests/test_s13.py` |
+| **Session 14: Prompt Anatomy**             | System instructions, structural delimiters, role framing, few-shot conditioning | [`s14_prompt_anatomy.ipynb`](module02/s14_prompt_anatomy.ipynb)<br>• [`reading_prompt_anatomy.md`](module02/reading_prompt_anatomy.md) | `tests/test_s14.py` |
+| **Session 15: Reasoning Architectures**    | Chain-of-Thought (CoT), Step-Back prompting, self-consistency voting, cost vs accuracy trade-offs | [`s15_reasoning.ipynb`](module02/s15_reasoning.ipynb)<br>• [`reasoning_utils.py`](module02/reasoning_utils.py) | `tests/test_s15.py` |
 
 ---
 
@@ -57,6 +59,7 @@ Rather than treating AI models as black boxes or writing brittle prompt scripts,
 - **Context Window Economics:** Pre-computing Byte Pair Encoding (BPE) counts locally prevents silent prompt truncation, mitigates context drift, and enforces strict operational cost budgets.
 - **Deterministic Output Guarantees:** Unconstrained LLM outputs inevitably break downstream systems. Enforcing Pydantic models with constrained regex patterns and enum types turns unstructured text into machine-readable JSON contracts.
 - **Hybrid Cloud vs. Local Routing:** Cloud endpoints offer scale and frontier intelligence, while local Ollama instances guarantee data privacy and zero inference costs. Routing dynamically based on task sensitivity balances performance and budget.
+- **Reasoning Strategy Economics:** Techniques like Chain-of-Thought (CoT) and Self-Consistency (majority voting) boost accuracy on edge-case logic, but scale token consumption and latency linearly or multiplicatively. Evaluating accuracy-per-dollar prevents over-engineering prompts for simple retrieval tasks.
 
 ---
 
@@ -77,7 +80,7 @@ _(Explore the full visual guide and datasets in [`module01/README.md`](module01/
 
 ## Architecture & Engineering Practices
 
-- **Automated CI (GitHub Actions):** Every commit triggers an automated pipeline running **65+ unit and logic tests** offline, ensuring business logic and schema parsers never regress.
+- **Automated CI (GitHub Actions):** Every commit triggers an automated pipeline running **140+ unit and logic tests** offline, ensuring business logic and schema parsers never regress.
 - **Modern Python Toolchain:** Managed via [`uv`](https://docs.astral.sh/uv/) for fast virtual environment resolution and deterministic dependency locking.
 - **Upstream Sync Architecture:** Employs a dual-branch Git pattern (`main` vs `upstream-sync`), keeping personal portfolio engineering and upstream syllabus updates cleanly decoupled.
 
