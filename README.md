@@ -5,84 +5,61 @@
 ![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)
 ![pytest](https://img.shields.io/badge/tested_with-pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)
 
-![Tech Stack](https://img.shields.io/badge/Tech_Stack-Python_•_Pydantic_•_Pytest_•_uv_•_Ollama_•_Groq_•_Gemini_•_GitHub_Actions-24292e?style=flat)
+![Tech Stack](https://img.shields.io/badge/Tech_Stack-Python_•_Pydantic_•_Pytest_•_uv_•_Ollama_•_Hugging_Face_•_Groq_•_Gemini_•_GitHub_Actions-24292e?style=flat)
 
-An applied engineering repository exploring the mechanics of Large Language Models, high-dimensional vector spaces, provider routing, and autonomous agent architectures—built from first principles with automated CI verification.
+> _Built while following Ajit Byru's GenAI / Agentic AI course._
+
+An applied engineering repository exploring the mechanics of Large Language Models, high-dimensional vector spaces, provider routing, and autonomous agent architectures. Built from first principles with automated CI testing and strict schema enforcement.
 
 ---
 
-## Architecture Overview
+## System Architecture
 
 ```mermaid
 flowchart LR
-    A["User Request"] --> B["Token Budgeter (tiktoken)"]
+    A["User Request"] --> B["Pre-Call Guards (Tokens / Safety Rules)"]
     B --> C{"Provider Router"}
     C -->|"Cloud API"| D["Groq / Gemini / OpenAI"]
-    C -->|"Local Inference"| E["Ollama (Self-Hosted)"]
+    C -->|"Local Edge"| E["Ollama / Hugging Face"]
     D --> F["Pydantic Schema Validator"]
     E --> F
-    F -->|"Valid"| G[("Deterministic JSON Output")]
-    F -->|"Schema Error"| H["Fallback & Retry Chain"]
+    F -->|"Valid Schema"| G[("Deterministic Output / Action")]
+    F -->|"Validation Error"| H["Fallback & Retry Chain"]
     H --> C
 ```
 
 ---
 
-## Engineering Focus
+## Showcase Applications
 
-Rather than treating AI models as black boxes or writing brittle prompt scripts, this repository is a technical lab focused on:
+Practical domain workflows where deterministic code owns the execution sequence, while language models handle unstructured parsing and intent extraction:
 
-- **Foundational Mechanics:** Understanding context economics, token serialization (BPE), and high-dimensional vector geometry before making API calls.
-- **Provider & Model Diversity:** Architecting unified interfaces across cloud providers (Gemini, Groq, OpenAI) and local inference engines (Ollama).
-- **Deterministic Reliability:** Constraining probabilistic models into strict, machine-readable schemas using Pydantic, JSON Schema, and structured tool calling.
-- **Test-Driven AI Development:** Every concept is backed by unit tests and offline mock fixtures, verified automatically via GitHub Actions CI.
+- **[Automated Insurance Claim Intake](showcase/a2_insurance/README.md) (`showcase/a2_insurance`):** Parses free-text vehicle damage claims into validated structured forms (`ClaimForm`), routing claims by severity to automated fast-track payout or human adjuster queues.
+- **[Healthcare Clinic Booking Flow](showcase/a3_healthcare/README.md) (`showcase/a3_healthcare`):** Multi-step patient conversational intake featuring pre-model emergency safety guards, model-based intent routing, dynamic slot-filling, and deterministic appointment scheduling.
 
 ---
 
-## Core Concepts & Implemented Modules
+## Modules Overview
 
-| Module / Session                           | Core Technical Focus                                                            | Key Implementations & Artifacts                                                                                                        | Test Suite          |
-| :----------------------------------------- | :------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------- | :------------------ |
-| **Session 09b: Tokens & Embeddings**       | BPE tokenization, context budgeting, token-to-byte ratios, pricing estimation   | [`s09_tokens.ipynb`](module01/s09_tokens.ipynb)<br>• [`tokens_utils.py`](module01/tokens_utils.py)                                     | `tests/test_s09.py` |
-| **Session 10: Model Landscape**            | Model comparison matrix, throughput/latency benchmarks, capability tiers        | [`s10_model_matrix.ipynb`](module01/s10_model_matrix.ipynb)<br>• [`landscape_utils.py`](module01/landscape_utils.py)                   | `tests/test_s10.py` |
-| **Session 11: Multi-Provider Routing**     | Unified provider interfaces, temperature sweeps, fallback chains                | [`s11_providers.ipynb`](module01/s11_providers.ipynb)<br>• [`providers_utils.py`](module01/providers_utils.py)                         | `tests/test_s11.py` |
-| **Session 12: Local Models**               | Self-hosted inference via Ollama, latency benchmarks, edge deployment tradeoffs | [`s12_local_models.ipynb`](module01/s12_local_models.ipynb)<br>• [`local_models_utils.py`](module01/local_models_utils.py)             | `tests/test_s12.py` |
-| **Session 13: Vision & Structured Output** | Multimodal OCR, ID card / document parsing, strict Pydantic extraction          | [`s13_vision_structured.ipynb`](module01/s13_vision_structured.ipynb)<br>• [`vision_utils.py`](module01/vision_utils.py)               | `tests/test_s13.py` |
-| **Session 14: Prompt Anatomy**             | System instructions, structural delimiters, role framing, few-shot conditioning | [`s14_prompt_anatomy.ipynb`](module02/s14_prompt_anatomy.ipynb)<br>• [`reading_prompt_anatomy.md`](module02/reading_prompt_anatomy.md) | `tests/test_s14.py` |
-| **Session 15: Reasoning Architectures**    | Chain-of-Thought (CoT), Step-Back prompting, self-consistency voting, cost vs accuracy trade-offs | [`s15_reasoning.ipynb`](module02/s15_reasoning.ipynb)<br>• [`reasoning_utils.py`](module02/reasoning_utils.py) | `tests/test_s15.py` |
+| Module                                           | Core Technical Focus                                                                                                                                      | Status      | Documentation                           |
+| :----------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------- | :-------------------------------------- |
+| **Module 01: Foundations & The Model Landscape** | BPE tokenization, vector embeddings, dimensionality reduction (PCA/SVD), multi-provider routing, local quantization, and multimodal structured extraction | Completed   | [Explore Module 01](module01/README.md) |
+| **Module 02: Prompt Engineering & Reasoning**    | Production prompt design, structural delimiters, private scratchpads, versioned prompt libraries, and reasoning cost/accuracy benchmarks                  | In Progress | [Explore Module 02](module02/README.md) |
 
 ---
 
-## Key Engineering Takeaways
+## Core Engineering Takeaways
 
-- **Vector Geometry & High Dimensions:** In 1536-dimensional embedding spaces, Euclidean distance suffers from distance concentration (the curse of dimensionality). Cosine similarity normalizes vector magnitude, capturing pure semantic orientation and direction.
-- **Context Window Economics:** Pre-computing Byte Pair Encoding (BPE) counts locally prevents silent prompt truncation, mitigates context drift, and enforces strict operational cost budgets.
-- **Deterministic Output Guarantees:** Unconstrained LLM outputs inevitably break downstream systems. Enforcing Pydantic models with constrained regex patterns and enum types turns unstructured text into machine-readable JSON contracts.
-- **Hybrid Cloud vs. Local Routing:** Cloud endpoints offer scale and frontier intelligence, while local Ollama instances guarantee data privacy and zero inference costs. Routing dynamically based on task sensitivity balances performance and budget.
-- **Reasoning Strategy Economics:** Techniques like Chain-of-Thought (CoT) and Self-Consistency (majority voting) boost accuracy on edge-case logic, but scale token consumption and latency linearly or multiplicatively. Evaluating accuracy-per-dollar prevents over-engineering prompts for simple retrieval tasks.
+- **Module 01 (Foundations & The Model Landscape):** Pre-computing BPE token allocations and vector dimensions locally exposes hidden cost and latency trade-offs before making API calls. While hosted accelerators provide high throughput, local quantization (int4) and self-hosted models offer strict data residency when handling sensitive records. _(See detailed session benchmarks and visualizers in [Module 01](module01/README.md).)_
+- **Module 02 (Prompt Engineering & Reasoning):** Unstructured natural language prompts fail under production constraints, requiring explicit delimiters and structural length boundaries. Moving static policies into system instructions unlocks prompt caching for significant cost savings, while intermediate reasoning must be isolated behind private scratchpads to protect sensitive data. _(See prompt library and strategy benchmarks in [Module 02](module02/README.md).)_
 
 ---
 
-## Interactive Browser Visualizers
+## Engineering Practices
 
-To build intuition for the underlying mathematics, standalone HTML tools run entirely client-side in the browser:
-
-- **[Complete Embedding & SVD Pipeline Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/pipeline_visualizer.html)**  
-  _Interactive trace: `Word → Vector Sliders → 768D Space → PCA Shadow → SVD Engine → 2D Projection`._
-- **[Interactive Embedding & PCA Journey](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/interactive_embedding_pca_journey.html)**  
-  _Visual explanation of how dimensionality reduction flattens high-dimensional semantic clouds._
-- **[Embeddings & Dimensions Sliders Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/embeddings_visualizer.html)**  
-  _Interactive exploration of cosine similarity angles and coordinate sliders._
-
-_(Explore the full visual guide and datasets in [`module01/README.md`](module01/README.md).)_
-
----
-
-## Architecture & Engineering Practices
-
-- **Automated CI (GitHub Actions):** Every commit triggers an automated pipeline running **140+ unit and logic tests** offline, ensuring business logic and schema parsers never regress.
-- **Modern Python Toolchain:** Managed via [`uv`](https://docs.astral.sh/uv/) for fast virtual environment resolution and deterministic dependency locking.
-- **Upstream Sync Architecture:** Employs a dual-branch Git pattern (`main` vs `upstream-sync`), keeping personal portfolio engineering and upstream syllabus updates cleanly decoupled.
+- **Automated CI (GitHub Actions):** Every commit triggers an automated pipeline running offline unit and logic tests across mock fixtures, preventing schema regressions and logic bugs without incurring API token costs.
+- **Fast, Deterministic Environments:** Managed with [`uv`](https://docs.astral.sh/uv/) for rapid virtual environment resolution and exact cross-platform dependency locking via `uv.lock`.
+- **Dual-Branch Upstream Architecture:** Employs an isolated two-branch Git strategy (`main` for personal engineering and documentation, `upstream-sync` as an untouched mirror for pulling course curriculum updates).
 
 ---
 
@@ -103,18 +80,18 @@ uv sync
 
 ### 2. Run the Offline Test Suite
 
-Run the verified offline test suite instantly without needing API keys or incurring costs:
+Run all verified offline unit and schema tests without needing API keys or incurring token costs:
 
 ```bash
 uv run pytest tests/ showcase/ --ignore=tests/test_setup.py -k "not live and not estimate_matches and not test_model_answers" -v
 ```
 
-### 3. Run Live Provider Tests (Optional)
+### 3. Run with Live Providers (Optional)
 
-To run live integration tests against real models:
+To run live integration tests or launch notebooks against cloud and local models:
 
 ```bash
-# Copy template and add your API keys (Ollama, Gemini, Groq, or OpenAI)
+# Copy template and add your API keys (Groq, Gemini, or Ollama)
 cp .env.example .env
 uv run pytest
 ```

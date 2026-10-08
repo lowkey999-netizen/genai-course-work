@@ -1,40 +1,68 @@
 # Module 01: Foundations & The Model Landscape
 
-This module covers the core physics and economics of Large Language Models: token counting, context window limitations, pricing tiers, high-dimensional vector embeddings, dimensionality reduction (PCA/SVD), and multi-provider orchestration.
+> _Built while following Ajit Byru's GenAI / Agentic AI course._
+
+This module explores the core mechanics and economics of Large Language Models: byte-pair tokenization, high-dimensional vector embeddings, dimensionality reduction (PCA/SVD), multi-provider routing, local quantization, and multimodal structured extraction.
 
 ---
 
-## Session Directory & Coursework Map
+## Module Pipeline Architecture
 
-The table below organizes all notebooks, helper modules, datasets, and readings for Module 01:
-
-| Session                                             | Core Lab Notebook                                    | Helper Modules & Data                                                                                                                                              | Concept Docs & Terms                                                                     | Interactive Tools & Visualizers                                                                                                                                                                                                                                                                                                                                                                                                                |
-| --------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Session 09b**<br>_Tokens & Embeddings_            | [`s09_tokens.ipynb`](./s09_tokens.ipynb)             | • [`tokens_utils.py`](./tokens_utils.py)<br>• [`embeddings_10words.json`](./embeddings_10words.json)<br>• [`make_embeddings_cache.py`](./make_embeddings_cache.py) | • [`reading_tokens.md`](./reading_tokens.md)<br>• [`terms_s09.md`](./terms_s09.md)       | • [Complete Pipeline Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/pipeline_visualizer.html)<br>• [Interactive Embedding & PCA Journey](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/interactive_embedding_pca_journey.html)<br>• [Embeddings & Dimensions Sliders](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/embeddings_visualizer.html) |
-| **Session 10**<br>_The Model Landscape_             | [`s10_model_matrix.ipynb`](./s10_model_matrix.ipynb) | • [`landscape_utils.py`](./landscape_utils.py)<br>• [`models_catalog.json`](./models_catalog.json)<br>• `s10_matrix_output.md`                                     | • [`reading_landscape.md`](./reading_landscape.md)<br>• [`terms_s10.md`](./terms_s10.md) | • Model matrix comparison table<br>• Speed vs. intelligence tradeoffs                                                                                                                                                                                                                                                                                                                                                                          |
-| **Session 11**<br>_Multi-Provider Calls & Sampling_ | [`s11_providers.ipynb`](./s11_providers.ipynb)       | • [`providers_utils.py`](./providers_utils.py)<br>• [`tickets_data.py`](./tickets_data.py)                                                                         | • [`reading_providers.md`](./reading_providers.md)<br>• [`terms_s11.md`](./terms_s11.md) | • Multi-provider routing (Groq, Ollama)<br>• Temperature & sampling sweeps                                                                                                                                                                                                                                                                                                                                                                     |
+```mermaid
+flowchart LR
+    A["Raw Input"] --> B["BPE Tokenizer (tiktoken)"]
+    B --> C["Embedding Engine (nomic-embed)"]
+    C --> D["High-Dim Vector Space (768D)"]
+    D --> E["PCA / SVD (2D Projection)"]
+    E --> F{"Provider Router (Temp 0.0)"}
+    F -->|"Cloud (Fast)"| G["Groq / Gemini"]
+    F -->|"Edge (PII / Private)"| H["Ollama Local"]
+    G --> I["Vision & Pydantic Schema Validator"]
+    H --> I
+    I --> J[("Verified Structured Output")]
+```
 
 ---
 
-## Interactive Intuition Guides & Visualizations
+## Session Directory & Artifacts
 
-This module includes three standalone, animated visual guides created to build deep intuitive mental models for embeddings, vector geometry, PCA, and SVD.
+| Session                                         | Core Lab Notebook                                              | Key Helpers & Data                                                                                                                                       | Concept Docs & Terms                                                                           | Test Suite          |
+| :---------------------------------------------- | :------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- | :------------------ |
+| **Session 09b: Tokens & Embeddings**            | [`s09_tokens.ipynb`](./s09_tokens.ipynb)                       | • [`tokens_utils.py`](./tokens_utils.py)<br>• [`embeddings_10words.json`](./embeddings_10words.json)                                                     | • [`reading_tokens.md`](./reading_tokens.md)<br>• [`terms_s09.md`](./terms_s09.md)             | `tests/test_s09.py` |
+| **Session 10: The Model Landscape**             | [`s10_model_matrix.ipynb`](./s10_model_matrix.ipynb)           | • [`landscape_utils.py`](./landscape_utils.py)<br>• [`models_catalog.json`](./models_catalog.json)<br>• [`s10_matrix_output.md`](./s10_matrix_output.md) | • [`reading_landscape.md`](./reading_landscape.md)<br>• [`terms_s10.md`](./terms_s10.md)       | `tests/test_s10.py` |
+| **Session 11: Multi-Provider Calls & Sampling** | [`s11_providers.ipynb`](./s11_providers.ipynb)                 | • [`providers_utils.py`](./providers_utils.py)<br>• [`tickets_data.py`](./tickets_data.py)                                                               | • [`reading_providers.md`](./reading_providers.md)<br>• [`terms_s11.md`](./terms_s11.md)       | `tests/test_s11.py` |
+| **Session 12: Local & Open Models**             | [`s12_local_models.ipynb`](./s12_local_models.ipynb)           | • [`local_models_utils.py`](./local_models_utils.py)<br>• [`local_models_catalog.json`](./local_models_catalog.json)                                     | • [`reading_local_models.md`](./reading_local_models.md)<br>• [`terms_s12.md`](./terms_s12.md) | `tests/test_s12.py` |
+| **Session 13: Vision & Structured Output**      | [`s13_vision_structured.ipynb`](./s13_vision_structured.ipynb) | • [`vision_utils.py`](./vision_utils.py)<br>• `sample_docs/` (Synthetic KYC IDs & Bills)                                                                 | • [`reading_structured.md`](./reading_structured.md)<br>• [`terms_s13.md`](./terms_s13.md)     | `tests/test_s13.py` |
 
-### One-Click Previews (via Raw.Githack CDN)
+---
+
+## What I Learned
+
+- **Session 09b (Tokenization):** In my BPE tokenizer benchmark, an identical loan query required 25 tokens in Telugu compared to 16 tokens in English. This roughly 56% increase in tokens demonstrates how non-Latin scripts suffer from sub-word fragmentation and carry higher operational costs.
+- **Session 10 (Model Selection):** In the loan calculation benchmark, hosted Groq generated 489.2 tokens per second compared to local Ollama at 13.0 tokens per second. Despite this performance gap, strict data-residency compliance for sensitive loan records made self-hosted models the required deployment choice.
+- **Session 11 (Temperature Stability):** In the ticket routing sweep, labels remained completely stable at temperatures 0.0 and 0.3, with drift only appearing at temperature 0.7 on borderline tickets. Setting temperature to 0.0 reliably suppresses this sampling variance and prioritizes the top logit for classification tasks.
+- **Session 12 (Local Inference):** In the streaming benchmark, local Ollama took 11.14 seconds of total response time compared to 1.04 seconds on Groq. This roughly 11x total response time gap shows that while consumer laptops can handle asynchronous batch jobs, real-time user-facing features require hosted acceleration.
+- **Session 13 (Structured Extraction):** While schema enforcement achieved valid JSON shape across all 5 test runs, it could not verify domain logic on its own. Layering a Pydantic validator resolved this by enforcing business rules, such as requiring a birth date for ID cards while allowing it to remain empty for utility bills.
+
+---
+
+## Interactive Browser Visualizers
+
+To build geometric intuition for high-dimensional vectors and dimensionality reduction, this module includes three client-side HTML visualizers:
 
 - **[Complete Embedding & SVD Pipeline Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/pipeline_visualizer.html)**  
-  _Walks step-by-step through the entire pipeline: `Word → Vector (Sliders) → 768D Space → PCA Shadow → SVD Engine (Rotate/Stretch/Rotate) → Final 2D Matplotlib Plot`._
-
+  _Walks step-by-step through the pipeline: `Word → Vector Sliders → 768D Space → PCA Shadow → SVD Engine (Rotate/Stretch/Rotate) → 2D Matplotlib Plot`._
 - **[Interactive Embedding & PCA Journey](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/interactive_embedding_pca_journey.html)**  
-  _An interactive visual exploration of multi-dimensional vector spaces and how dimensionality reduction flattens high-dimensional semantic clouds._
-
+  _Visual exploration of how dimensionality reduction flattens high-dimensional semantic clouds._
 - **[Embeddings & Dimensions Sliders Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/embeddings_visualizer.html)**  
-  _Builds intuition on how words turn into coordinate sliders and why semantic similarity is measured as angles (cosine similarity)._
+  _Interactive slider tool showing how words translate to coordinate angles and cosine similarity._
 
 ---
 
-### Running Locally on Your Machine
+## Running Module 01 Tests
 
-1. Open your terminal or file explorer and go to `module01/`.
-2. Double-click any `.html` file (or right-click → **Open with** → Chrome, Edge, Safari, or Firefox).
-3. The visualizer runs locally in your browser with zero dependencies or server setup required.
+Verify all module checkpoints offline:
+
+```bash
+uv run pytest tests/test_s09.py tests/test_s10.py tests/test_s11.py tests/test_s12.py tests/test_s13.py -v
+```
