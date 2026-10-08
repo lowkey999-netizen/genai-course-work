@@ -9,23 +9,29 @@ from dataclasses import dataclass, field
 
 from prompt_utils import CheckResult, PromptSpec, chat
 
+
 # ---------------------------------------------------------------- small reusable checks
+# Counts total words in a string by splitting on whitespace
 def _words(t: str) -> int:
     return len(t.split())
 
 
+# Check validator ensuring output word count does not exceed limit n
 def max_words(n):
     return (f"at most {n} words", lambda t: (_words(t) <= n, f"{_words(t)} words"))
 
 
+# Check validator ensuring output character count does not exceed limit n
 def max_chars(n):
     return (f"at most {n} characters", lambda t: (len(t.strip()) <= n, f"{len(t.strip())} characters"))
 
 
+# Check validator asserting target text appears in the generated output
 def has(text, label=None):
     return (label or f"mentions '{text}'", lambda t: (text.lower() in t.lower(), ""))
 
 
+# Check validator asserting none of the forbidden terms appear in output
 def has_none_of(terms, label):
     def run(t):
         found = [x for x in terms if x.lower() in t.lower()]
@@ -33,6 +39,7 @@ def has_none_of(terms, label):
     return (label, run)
 
 
+# Check validator asserting output contains exactly n bullet or numbered lines
 def bullet_lines(n):
     def run(t):
         k = sum(bool(re.match(r"^\s*([-*\u2022]|\d+[.)])\s+\S", line)) for line in t.splitlines())
@@ -40,10 +47,12 @@ def bullet_lines(n):
     return (f"exactly {n} bullet lines", run)
 
 
+# Check validator asserting output satisfies a given regular expression pattern
 def matches(pattern, label):
     return (label, lambda t: (bool(re.search(pattern, t, re.IGNORECASE)), ""))
 
 
+# Safely parses text into a Python dictionary, returning None if invalid JSON
 def _json(t):
     try:
         data = json.loads(t.strip())
@@ -52,14 +61,17 @@ def _json(t):
         return None
 
 
+# Check validator asserting output parses strictly as a raw JSON object
 def json_only():
     return ("reply is a JSON object only (no prose, no code fences)", lambda t: (_json(t) is not None, "" if _json(t) is not None else "did not parse as bare JSON"))
 
 
+# Check validator asserting JSON output contains the exact expected set of keys
 def json_keys(keys):
-    return (f"has exactly the keys {sorted(keys)}", lambda t: (_json(t) is not None and set(_json(t)) == set(keys), ""))
+    return (f"has exactly the keys {sorted(keys)}", lambda t: (_json(t) is not None and set(_json(t)) == set(keys), "")) # type: ignore
 
 
+# Check validator asserting specific key has expected value within allowed options
 def json_value(key, expected, allowed):
     def run(t):
         d = _json(t)
@@ -71,6 +83,7 @@ def json_value(key, expected, allowed):
 
 
 # ---------------------------------------------------------------- the task object
+# Container defining an evaluation scenario with prompts, context, and test checks
 @dataclass
 class Task:
     id: str
@@ -82,13 +95,16 @@ class Task:
     checks: list = field(default_factory=list)         # [(name, fn)]
     reference: PromptSpec = field(default_factory=PromptSpec)
 
+    # Builds a basic PromptSpec using only the baseline unrefined prompt
     def weak_spec(self) -> PromptSpec:
         return PromptSpec(task=self.weak_prompt)
 
+    # Returns the list of acceptance check descriptions for this task
     def acceptance(self) -> list:
         return [name for name, _ in self.checks]
 
 
+# Executes all acceptance test functions on text and aggregates check results
 def run_checks(task: Task, text: str) -> list:
     out = []
     for name, fn in task.checks:
@@ -100,6 +116,7 @@ def run_checks(task: Task, text: str) -> list:
     return out
 
 
+# Sends prompt specification to LLM and returns generated output with test results
 def run_task(client, model: str, task: Task, spec: PromptSpec) -> tuple:
     """Run a spec on a task's input; return (output text, check results)."""
     text = chat(client, model, spec.to_messages(task.user_input))["text"]
@@ -225,11 +242,13 @@ COMPLAINTS_TEST = [   # (message, label under the bank's convention)
 ]
 
 
+# Builds classification PromptSpec with zero, one, or multiple few-shot examples
 def classify_spec(n_examples: int) -> PromptSpec:
     """The same instruction every time; only the number of worked examples changes (0, 1 or 4)."""
     return PromptSpec(task=CLASSIFY_INSTRUCTION, examples=EXAMPLES[:n_examples])
 
 
+# Extracts target category from model response and checks if reply strictly matched format
 def read_label(reply: str):
     """(label or None, exact). exact means the reply was ONLY the label word, as instructed."""
     cleaned = re.sub(r"[^a-z ]", "", reply.lower()).strip()
@@ -241,6 +260,7 @@ def read_label(reply: str):
     return None, False
 
 
+# Evaluates classification prompt on test items to measure accuracy and format compliance
 def score_classifier(client, model: str, spec: PromptSpec, items=COMPLAINTS_TEST) -> dict:
     """Run a classifier spec over labelled messages. Returns accuracy and how often the format was obeyed."""
     right = exact = 0
@@ -253,3 +273,4 @@ def score_classifier(client, model: str, spec: PromptSpec, items=COMPLAINTS_TEST
         if label != truth:
             wrong.append((text, truth, label))
     return {"accuracy": right, "exact_format": exact, "n": len(items), "wrong": wrong}
+
