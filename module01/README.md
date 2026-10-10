@@ -8,18 +8,46 @@ This module explores the core mechanics and economics of Large Language Models: 
 
 ## Module Pipeline Architecture
 
-```mermaid
-flowchart LR
-    A["Raw Input"] --> B["BPE Tokenizer (tiktoken)"]
-    B --> C["Embedding Engine (nomic-embed)"]
-    C --> D["High-Dim Vector Space (768D)"]
-    D --> E["PCA / SVD (2D Projection)"]
-    E --> F{"Provider Router (Temp 0.0)"}
-    F -->|"Cloud (Fast)"| G["Groq / Gemini"]
-    F -->|"Edge (PII / Private)"| H["Ollama Local"]
-    G --> I["Vision & Pydantic Schema Validator"]
-    H --> I
-    I --> J[("Verified Structured Output")]
+```text
+                    ╭──────────────────────╮
+                    │      Raw Input       │
+                    ╰──────────┬───────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │       BPE Tokenizer (tiktoken)       │
+            │   Sub-Word Encoding · Token Budget   │
+            ╰──────────────────┬───────────────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │    Embedding Engine (nomic-embed)    │
+            │  768D Vector Space · PCA / SVD (2D)  │
+            ╰──────────────────┬───────────────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │      Provider Router (Temp 0.0)      │
+            ╰───────┬──────────────────────┬───────╯
+                    │ Cloud (Fast)         │ Edge (Private)
+                    ▼                      ▼
+            ╭───────────────╮      ╭───────────────╮
+            │ Groq / Gemini │      │  Ollama Local │
+            ╰───────┬───────╯      ╰───────┬───────╯
+                    │                      │
+                    ╰──────────┬───────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │     Vision & Pydantic Validator      │
+            │  Multimodal KYC · Schema Enforcement │
+            ╰──────────────────┬───────────────────╯
+                               │
+                               ▼
+                    ╭──────────────────────╮
+                    │ Verified Structured  │
+                    │        Output        │
+                    ╰──────────────────────╯
 ```
 
 ---

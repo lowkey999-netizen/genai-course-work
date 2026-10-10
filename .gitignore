@@ -6,13 +6,5 @@ __pycache__/
 .vscode/
 .DS_Store
 agent.py
-GEMINI.md
-.continueignore
-.agentignore
 .ipynb_checkpoints/
-module01/Pipeline_visualizer_explanation.md
-.geminiignore
-.markdownlint.json
-.agents/
-tasks/
-module02/work_repo_steps.md
+

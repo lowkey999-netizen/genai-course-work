@@ -15,17 +15,40 @@ An applied engineering repository exploring the mechanics of Large Language Mode
 
 ## System Architecture
 
-```mermaid
-flowchart LR
-    A["User Request"] --> B["Pre-Call Guards (Tokens / Safety Rules)"]
-    B --> C{"Provider Router"}
-    C -->|"Cloud API"| D["Groq / Gemini / OpenAI"]
-    C -->|"Local Edge"| E["Ollama / Hugging Face"]
-    D --> F["Pydantic Schema Validator"]
-    E --> F
-    F -->|"Valid Schema"| G[("Deterministic Output / Action")]
-    F -->|"Validation Error"| H["Error Feedback / Retry Loop"]
-    H --> C
+```text
+                    ╭──────────────────────╮
+                    │     User Request     │
+                    ╰──────────┬───────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │           Pre-Call Guards            │
+            │   Token Budgeting  ·  Safety Rules   │
+            ╰──────────────────┬───────────────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │           Provider Router            │
+            ╰───────┬──────────────────────┬───────╯
+                    │ Cloud                │ Edge
+                    ▼                      ▼
+            ╭───────────────╮      ╭───────────────╮
+            │ Groq / Gemini │      │  Ollama / HF  │
+            ╰───────┬───────╯      ╰───────┬───────╯
+                    │                      │
+                    ╰──────────┬───────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │      Pydantic Schema Validator       │
+            ╰───────┬──────────────────────┬───────╯
+                    │ [Valid]              │ [Error]
+                    ▼                      ▼
+       ╭────────────────────────╮  ╭────────────────────────╮
+       │  Deterministic Action  │  │  Feedback Retry Loop   │──┐
+       ╰────────────────────────╯  ╰────────────────────────╯  │
+                    ▲                                          │
+                    └──────────────────────────────────────────┘
 ```
 
 ---
