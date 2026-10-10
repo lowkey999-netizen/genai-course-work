@@ -44,14 +44,14 @@ Canonical reference workflows from the course demonstrating code-owned execution
 | Module                                           | Core Technical Focus                                                                                                                                      | Status      | Documentation                           |
 | :----------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------- | :-------------------------------------- |
 | **Module 01: Foundations & The Model Landscape** | BPE tokenization, vector embeddings, dimensionality reduction (PCA/SVD), multi-provider routing, local quantization, and multimodal structured extraction | Completed   | [Explore Module 01](module01/README.md) |
-| **Module 02: Prompt Engineering & Reasoning**    | Production prompt design, structural delimiters, private scratchpads, versioned prompt libraries, and reasoning cost/accuracy benchmarks                  | In Progress | [Explore Module 02](module02/README.md) |
+| **Module 02: Prompt Engineering & Reasoning**    | Production prompt design, structural delimiters, Jinja2 templating, private scratchpads, versioned prompt libraries, and reasoning cost/accuracy benchmarks | In Progress | [Explore Module 02](module02/README.md) |
 
 ---
 
 ## Core Engineering Takeaways
 
 - **Module 01 (Foundations & The Model Landscape):** Pre-computing BPE token allocations and vector dimensions locally exposes hidden cost and latency trade-offs before making API calls. While hosted accelerators provide high throughput, local quantization (int4) and self-hosted models offer strict data residency when handling sensitive records. _(See detailed session benchmarks and visualizers in [Module 01](module01/README.md).)_
-- **Module 02 (Prompt Engineering & Reasoning):** Unstructured natural language prompts fail under production constraints, requiring explicit delimiters and structural length boundaries. Moving static policies into system instructions unlocks prompt caching for significant cost savings, while intermediate reasoning must be isolated behind private scratchpads to protect sensitive data. _(See prompt library and strategy benchmarks in [Module 02](module02/README.md).)_
+- **Module 02 (Prompt Engineering & Reasoning):** Strict structural boundaries (XML tags, Jinja2 templates) and versioned prompt files prevent injection attacks and unlock prompt caching for static policies. Thinking strategies like Chain-of-Thought are essential for smaller local models (flipping edge-case accuracy from 0/5 to 5/5) but inflate token costs on native reasoning models, while private scratchpads ensure internal reasoning never leaks to users. _(See prompt library, accuracy tables, and classifier benchmarks in [Module 02](module02/README.md).)_
 
 ---
 

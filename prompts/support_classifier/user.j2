@@ -1,0 +1,16 @@
+{% if examples %}
+Here are examples of correctly classified tickets:
+{% for ex in examples %}
+<ticket>
+{{ ex.text }}
+</ticket>
+Label: {{ ex.label }}
+
+{% endfor %}
+{% endif %}
+Classify this ticket.
+<ticket>
+{{ ticket }}
+</ticket>
+Allowed labels: {{ labels | join(", ") }}.
+Reply with exactly one word: the label name.
