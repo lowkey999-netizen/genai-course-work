@@ -5,11 +5,11 @@
 ![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)
 ![pytest](https://img.shields.io/badge/tested_with-pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)
 
-![Tech Stack](https://img.shields.io/badge/Tech_Stack-Python_•_Pydantic_•_Pytest_•_uv_•_Ollama_•_Hugging_Face_•_Groq_•_Gemini_•_GitHub_Actions-24292e?style=flat)
+![Tech Stack](https://img.shields.io/badge/Tech_Stack-Python_•_Pydantic_•_Jinja2_•_Pytest_•_uv_•_Ollama_•_Hugging_Face_•_Groq_•_Gemini_•_GitHub_Actions-24292e?style=flat)
 
 > _Built while following Ajit Byru's GenAI / Agentic AI course._
 
-An applied engineering repository exploring the mechanics of Large Language Models, high-dimensional vector spaces, provider routing, and autonomous agent architectures. Built from first principles with automated CI testing and strict schema enforcement.
+An applied engineering repository exploring the mechanics of Large Language Models, high-dimensional vector spaces, provider routing, and working toward agentic workflows with automated CI testing and strict schema enforcement.
 
 ---
 
@@ -24,7 +24,7 @@ flowchart LR
     D --> F["Pydantic Schema Validator"]
     E --> F
     F -->|"Valid Schema"| G[("Deterministic Output / Action")]
-    F -->|"Validation Error"| H["Fallback & Retry Chain"]
+    F -->|"Validation Error"| H["Error Feedback / Retry Loop"]
     H --> C
 ```
 
@@ -32,7 +32,7 @@ flowchart LR
 
 ## Showcase Applications
 
-Practical domain workflows where deterministic code owns the execution sequence, while language models handle unstructured parsing and intent extraction:
+Canonical reference workflows from the course demonstrating code-owned execution sequences where language models handle unstructured parsing and intent extraction:
 
 - **[Automated Insurance Claim Intake](showcase/a2_insurance/README.md) (`showcase/a2_insurance`):** Parses free-text vehicle damage claims into validated structured forms (`ClaimForm`), routing claims by severity to automated fast-track payout or human adjuster queues.
 - **[Healthcare Clinic Booking Flow](showcase/a3_healthcare/README.md) (`showcase/a3_healthcare`):** Multi-step patient conversational intake featuring pre-model emergency safety guards, model-based intent routing, dynamic slot-filling, and deterministic appointment scheduling.

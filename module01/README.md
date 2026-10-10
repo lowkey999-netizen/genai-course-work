@@ -26,13 +26,13 @@ flowchart LR
 
 ## Session Directory & Artifacts
 
-| Session                                         | Core Lab Notebook                                              | Key Helpers & Data                                                                                                                                       | Concept Docs & Terms                                                                           | Test Suite          |
-| :---------------------------------------------- | :------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- | :------------------ |
-| **Session 09b: Tokens & Embeddings**            | [`s09_tokens.ipynb`](./s09_tokens.ipynb)                       | • [`tokens_utils.py`](./tokens_utils.py)<br>• [`embeddings_10words.json`](./embeddings_10words.json)                                                     | • [`reading_tokens.md`](./reading_tokens.md)<br>• [`terms_s09.md`](./terms_s09.md)             | `tests/test_s09.py` |
-| **Session 10: The Model Landscape**             | [`s10_model_matrix.ipynb`](./s10_model_matrix.ipynb)           | • [`landscape_utils.py`](./landscape_utils.py)<br>• [`models_catalog.json`](./models_catalog.json)<br>• [`s10_matrix_output.md`](./s10_matrix_output.md) | • [`reading_landscape.md`](./reading_landscape.md)<br>• [`terms_s10.md`](./terms_s10.md)       | `tests/test_s10.py` |
-| **Session 11: Multi-Provider Calls & Sampling** | [`s11_providers.ipynb`](./s11_providers.ipynb)                 | • [`providers_utils.py`](./providers_utils.py)<br>• [`tickets_data.py`](./tickets_data.py)                                                               | • [`reading_providers.md`](./reading_providers.md)<br>• [`terms_s11.md`](./terms_s11.md)       | `tests/test_s11.py` |
-| **Session 12: Local & Open Models**             | [`s12_local_models.ipynb`](./s12_local_models.ipynb)           | • [`local_models_utils.py`](./local_models_utils.py)<br>• [`local_models_catalog.json`](./local_models_catalog.json)                                     | • [`reading_local_models.md`](./reading_local_models.md)<br>• [`terms_s12.md`](./terms_s12.md) | `tests/test_s12.py` |
-| **Session 13: Vision & Structured Output**      | [`s13_vision_structured.ipynb`](./s13_vision_structured.ipynb) | • [`vision_utils.py`](./vision_utils.py)<br>• `sample_docs/` (Synthetic KYC IDs & Bills)                                                                 | • [`reading_structured.md`](./reading_structured.md)<br>• [`terms_s13.md`](./terms_s13.md)     | `tests/test_s13.py` |
+| Session                                         | Core Lab Notebook                                              | Key Helpers & Data                                                                                                                                       | Concept Docs & Terms                                                                           | Test Suite                                  |
+| :---------------------------------------------- | :------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------ |
+| **Session 09b: Tokens & Embeddings**            | [`s09_tokens.ipynb`](./s09_tokens.ipynb)                       | • [`tokens_utils.py`](./tokens_utils.py)<br>• [`embeddings_10words.json`](./embeddings_10words.json)                                                     | • [`reading_tokens.md`](./reading_tokens.md)<br>• [`terms_s09.md`](./terms_s09.md)             | [`tests/test_s09.py`](../tests/test_s09.py) |
+| **Session 10: The Model Landscape**             | [`s10_model_matrix.ipynb`](./s10_model_matrix.ipynb)           | • [`landscape_utils.py`](./landscape_utils.py)<br>• [`models_catalog.json`](./models_catalog.json)<br>• [`s10_matrix_output.md`](./s10_matrix_output.md) | • [`reading_landscape.md`](./reading_landscape.md)<br>• [`terms_s10.md`](./terms_s10.md)       | [`tests/test_s10.py`](../tests/test_s10.py) |
+| **Session 11: Multi-Provider Calls & Sampling** | [`s11_providers.ipynb`](./s11_providers.ipynb)                 | • [`providers_utils.py`](./providers_utils.py)<br>• [`tickets_data.py`](./tickets_data.py)                                                               | • [`reading_providers.md`](./reading_providers.md)<br>• [`terms_s11.md`](./terms_s11.md)       | [`tests/test_s11.py`](../tests/test_s11.py) |
+| **Session 12: Local & Open Models**             | [`s12_local_models.ipynb`](./s12_local_models.ipynb)           | • [`local_models_utils.py`](./local_models_utils.py)<br>• [`local_models_catalog.json`](./local_models_catalog.json)                                     | • [`reading_local_models.md`](./reading_local_models.md)<br>• [`terms_s12.md`](./terms_s12.md) | [`tests/test_s12.py`](../tests/test_s12.py) |
+| **Session 13: Vision & Structured Output**      | [`s13_vision_structured.ipynb`](./s13_vision_structured.ipynb) | • [`vision_utils.py`](./vision_utils.py)<br>• [`sample_docs/`](./sample_docs/) (Synthetic KYC IDs & Bills)                                               | • [`reading_structured.md`](./reading_structured.md)<br>• [`terms_s13.md`](./terms_s13.md)     | [`tests/test_s13.py`](../tests/test_s13.py) |
 
 ---
 
@@ -50,7 +50,7 @@ flowchart LR
 
 To build geometric intuition for high-dimensional vectors and dimensionality reduction, this module includes three client-side HTML visualizers:
 
-- **[Complete Embedding & SVD Pipeline Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/pipeline_visualizer.html)**  
+- **[Complete Embedding & SVD Pipeline Visualizer](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/pipeline_visualizer.html)** ([Architecture Notes](./Pipeline_visualizer_explanation.md))  
   _Walks step-by-step through the pipeline: `Word → Vector Sliders → 768D Space → PCA Shadow → SVD Engine (Rotate/Stretch/Rotate) → 2D Matplotlib Plot`._
 - **[Interactive Embedding & PCA Journey](https://raw.githack.com/lowkey999-netizen/genai-course-work/main/module01/interactive_embedding_pca_journey.html)**  
   _Visual exploration of how dimensionality reduction flattens high-dimensional semantic clouds._
@@ -64,5 +64,6 @@ To build geometric intuition for high-dimensional vectors and dimensionality red
 Verify all module checkpoints offline:
 
 ```bash
-uv run pytest tests/test_s09.py tests/test_s10.py tests/test_s11.py tests/test_s12.py tests/test_s13.py -v
+# Run all deterministic offline tests across Module 01:
+uv run pytest tests/test_s09.py tests/test_s10.py tests/test_s11.py tests/test_s12.py tests/test_s13.py -k "not live" -v
 ```
