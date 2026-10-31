@@ -22,21 +22,27 @@ An applied engineering repository exploring the mechanics of Large Language Mode
                                │
                                ▼
             ╭──────────────────────────────────────╮
-            │           Pre-Call Guards            │
-            │   Token Budgeting  ·  Safety Rules   │
+            │       Defensive Prompt Pipeline      │
+            │  Jinja2 Escape · Delimiters · Policy │
             ╰──────────────────┬───────────────────╯
                                │
                                ▼
             ╭──────────────────────────────────────╮
             │           Provider Router            │
             ╰───────┬──────────────────────┬───────╯
-                    │ Cloud                │ Edge
+                    │ Cloud                │ Edge / Local
                     ▼                      ▼
             ╭───────────────╮      ╭───────────────╮
             │ Groq / Gemini │      │  Ollama / HF  │
             ╰───────┬───────╯      ╰───────┬───────╯
                     │                      │
                     ╰──────────┬───────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │    Reasoning & Guardrail Filter      │
+            │   Strip <scratchpad> · Leak Scan     │
+            ╰──────────────────┬───────────────────╯
                                │
                                ▼
             ╭──────────────────────────────────────╮
@@ -64,17 +70,17 @@ Canonical reference workflows from the course demonstrating code-owned execution
 
 ## Modules Overview
 
-| Module                                           | Core Technical Focus                                                                                                                                      | Status      | Documentation                           |
-| :----------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------- | :-------------------------------------- |
-| **Module 01: Foundations & The Model Landscape** | BPE tokenization, vector embeddings, dimensionality reduction (PCA/SVD), multi-provider routing, local quantization, and multimodal structured extraction | Completed   | [Explore Module 01](module01/README.md) |
-| **Module 02: Prompt Engineering & Reasoning**    | Production prompt design, structural delimiters, Jinja2 templating, private scratchpads, versioned prompt libraries, and reasoning cost/accuracy benchmarks | In Progress | [Explore Module 02](module02/README.md) |
+| Module                                           | Core Technical Focus                                                                                                                                                                     | Status    | Documentation                           |
+| :----------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------- | :-------------------------------------- |
+| **Module 01: Foundations & The Model Landscape** | BPE tokenization, vector embeddings, dimensionality reduction (PCA/SVD), multi-provider routing, local quantization, and multimodal structured extraction                                | Completed | [Explore Module 01](module01/README.md) |
+| **Module 02: Prompt Engineering & Reasoning**    | Production prompt design, structural delimiters, Jinja2 templating, private scratchpads, versioned prompt libraries, LLM-as-a-judge evaluation, and multi-layer defensive red-teaming | Completed | [Explore Module 02](module02/README.md) |
 
 ---
 
 ## Core Engineering Takeaways
 
 - **Module 01 (Foundations & The Model Landscape):** Pre-computing BPE token allocations and vector dimensions locally exposes hidden cost and latency trade-offs before making API calls. While hosted accelerators provide high throughput, local quantization (int4) and self-hosted models offer strict data residency when handling sensitive records. _(See detailed session benchmarks and visualizers in [Module 01](module01/README.md).)_
-- **Module 02 (Prompt Engineering & Reasoning):** Strict structural boundaries (XML tags, Jinja2 templates) and versioned prompt files prevent injection attacks and unlock prompt caching for static policies. Thinking strategies like Chain-of-Thought are essential for smaller local models (flipping edge-case accuracy from 0/5 to 5/5) but inflate token costs on native reasoning models, while private scratchpads ensure internal reasoning never leaks to users. _(See prompt library, accuracy tables, and classifier benchmarks in [Module 02](module02/README.md).)_
+- **Module 02 (Prompt Engineering & Reasoning):** Strict structural boundaries (XML delimiters, escaped tags) and versioned prompt files prevent prompt injection and unlock caching for static policies. Thinking strategies like Chain-of-Thought are crucial for smaller local models (flipping edge-case accuracy from 0/5 to 5/5) but inflate token costs on native reasoning models. Sealing private thoughts in a `<scratchpad>` curtain stripped by application code, alongside a leak scanner and instruction hierarchy, eliminated adversarial breakouts across 16 attack vectors (0% exploit rate) while maintaining 100% classification accuracy. _(See prompt library, accuracy tables, eval harness, and defense benchmarks in [Module 02](module02/README.md).)_
 
 ---
 
