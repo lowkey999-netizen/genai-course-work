@@ -5,7 +5,7 @@
 ![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)
 ![pytest](https://img.shields.io/badge/tested_with-pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)
 
-![Tech Stack](https://img.shields.io/badge/Tech_Stack-Python_•_Pydantic_•_Jinja2_•_Pytest_•_uv_•_Ollama_•_Hugging_Face_•_Groq_•_Gemini_•_GitHub_Actions-24292e?style=flat)
+![Tech Stack](https://img.shields.io/badge/Tech_Stack-Python_•_LangChain_•_Pydantic_•_Jinja2_•_Pytest_•_uv_•_Ollama_•_Hugging_Face_•_Groq_•_Gemini_•_GitHub_Actions-24292e?style=flat)
 
 > _Built while following Ajit Byru's GenAI / Agentic AI course._
 
@@ -17,12 +17,18 @@ An applied engineering repository exploring the mechanics of Large Language Mode
 
 ```text
                     ╭──────────────────────╮
-                    │     User Request     │
+                    │  User Dialogue / Req │
                     ╰──────────┬───────────╯
                                │
                                ▼
             ╭──────────────────────────────────────╮
-            │       Defensive Prompt Pipeline      │
+            │       State & Memory Pipeline        │
+            │   Sliding / Summary · Token Budget   │
+            ╰──────────────────┬───────────────────╯
+                               │
+                               ▼
+            ╭──────────────────────────────────────╮
+            │      Defensive Prompt Pipeline       │
             │  Jinja2 Escape · Delimiters · Policy │
             ╰──────────────────┬───────────────────╯
                                │
@@ -40,21 +46,26 @@ An applied engineering repository exploring the mechanics of Large Language Mode
                                │
                                ▼
             ╭──────────────────────────────────────╮
-            │    Reasoning & Guardrail Filter      │
-            │   Strip <scratchpad> · Leak Scan     │
-            ╰──────────────────┬───────────────────╯
-                               │
-                               ▼
-            ╭──────────────────────────────────────╮
-            │      Pydantic Schema Validator       │
+            │     Reasoning & Guardrail Filter     │
+            │    Strip <scratchpad> · Leak Scan    │
             ╰───────┬──────────────────────┬───────╯
-                    │ [Valid]              │ [Error]
+                    │ Tool Call            │ Final Text
                     ▼                      ▼
-       ╭────────────────────────╮  ╭────────────────────────╮
-       │  Deterministic Action  │  │  Feedback Retry Loop   │──┐
-       ╰────────────────────────╯  ╰────────────────────────╯  │
-                    ▲                                          │
-                    └──────────────────────────────────────────┘
+            ╭───────────────╮      ╭───────────────╮
+            │ Tool Engine   │      │ Pydantic /    │
+            │ JSON Dispatch │──┐   │ Schema Check  │
+            ╰───────────────╯  │   ╰───────┬───────╯
+                               │           │ [Valid]
+                               │           ▼
+                               │   ╭────────────────────────╮
+                               │   │  Deterministic Action  │
+                               │   ╰────────────────────────╯
+                               │               ▲
+                               ▼               │
+            ╭──────────────────────────────────┴───╮
+            │     Agent State Loop (LangChain)     │
+            │   Tool Output Re-injection & State   │
+            ╰──────────────────────────────────────╯
 ```
 
 ---
@@ -70,10 +81,11 @@ Canonical reference workflows from the course demonstrating code-owned execution
 
 ## Modules Overview
 
-| Module                                           | Core Technical Focus                                                                                                                                                                     | Status    | Documentation                           |
-| :----------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------- | :-------------------------------------- |
-| **Module 01: Foundations & The Model Landscape** | BPE tokenization, vector embeddings, dimensionality reduction (PCA/SVD), multi-provider routing, local quantization, and multimodal structured extraction                                | Completed | [Explore Module 01](module01/README.md) |
-| **Module 02: Prompt Engineering & Reasoning**    | Production prompt design, structural delimiters, Jinja2 templating, private scratchpads, versioned prompt libraries, LLM-as-a-judge evaluation, and multi-layer defensive red-teaming | Completed | [Explore Module 02](module02/README.md) |
+| Module                                           | Core Technical Focus                                                                                                                                                                  | Status      | Documentation                           |
+| :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------- | :-------------------------------------- |
+| **Module 01: Foundations & The Model Landscape** | BPE tokenization, vector embeddings, dimensionality reduction (PCA/SVD), multi-provider routing, local quantization, and multimodal structured extraction                             | Completed   | [Explore Module 01](module01/README.md) |
+| **Module 02: Prompt Engineering & Reasoning**    | Production prompt design, structural delimiters, Jinja2 templating, private scratchpads, versioned prompt libraries, LLM-as-a-judge evaluation, and multi-layer defensive red-teaming | Completed   | [Explore Module 02](module02/README.md) |
+| **Module 03: LLM Applications**                  | Multi-turn conversational memory, sliding window & summarization eviction, JSON tool schema dispatch, and stateful agent orchestration with LangChain                                 | In Progress | [Explore Module 03](module03/README.md) |
 
 ---
 
@@ -81,6 +93,7 @@ Canonical reference workflows from the course demonstrating code-owned execution
 
 - **Module 01 (Foundations & The Model Landscape):** Pre-computing BPE token allocations and vector dimensions locally exposes hidden cost and latency trade-offs before making API calls. While hosted accelerators provide high throughput, local quantization (int4) and self-hosted models offer strict data residency when handling sensitive records. _(See detailed session benchmarks and visualizers in [Module 01](module01/README.md).)_
 - **Module 02 (Prompt Engineering & Reasoning):** Strict structural boundaries (XML delimiters, escaped tags) and versioned prompt files prevent prompt injection and unlock caching for static policies. Thinking strategies like Chain-of-Thought are crucial for smaller local models (flipping edge-case accuracy from 0/5 to 5/5) but inflate token costs on native reasoning models. Sealing private thoughts in a `<scratchpad>` curtain stripped by application code, alongside a leak scanner and instruction hierarchy, eliminated adversarial breakouts across 16 attack vectors (0% exploit rate) while maintaining 100% classification accuracy. _(See prompt library, accuracy tables, eval harness, and defense benchmarks in [Module 02](module02/README.md).)_
+- **Module 03 (LLM Applications):** Multi-turn chat histories scale token costs quadratically ($O(N^2)$) if left unmanaged. While a 6-turn sliding window trimmed final-turn token load by ~46%, it triggered deterministic amnesia on early references. Progressive summarization cut final-turn token consumption by ~28% but discarded fine-grained reference tokens without explicit entity guards, demonstrating why stateful tool calling and structured memory persistence are essential for multi-turn production agents. _(See session experiments and tool benchmarks in [Module 03](module03/README.md).)_
 
 ---
 
