@@ -58,12 +58,14 @@ This module explores multi-turn conversational state, context window economics, 
 | Session | Core Lab Notebook | Key Helpers & Resources | Deliverables & Artifacts | Test Suite |
 | :--- | :--- | :--- | :--- | :--- |
 | **Session 19: Chat State & Memory Windows** | [`s19_chat_memory.ipynb`](./s19_chat_memory.ipynb) | • [`chat_utils.py`](./chat_utils.py)<br>• [`chat_tasks.py`](./chat_tasks.py)<br>• [`terms_s19.md`](./terms_s19.md) | • [`experiments/s19_chat_memory.md`](../experiments/s19_chat_memory.md) | [`tests/test_s19.py`](../tests/test_s19.py) |
+| **Session 20: Function Calling** | [`s20_function_calling.ipynb`](./s20_function_calling.ipynb) | • [`tool_utils.py`](./tool_utils.py)<br>• [`tool_tasks.py`](./tool_tasks.py)<br>• [`terms_s20.md`](./terms_s20.md) | • [`experiments/s20_tools.md`](../experiments/s20_tools.md) | [`tests/test_s20.py`](../tests/test_s20.py) |
 
 ---
 
 ## What I Learned
 
 - **Session 19 (Chat State & Memory):** Benchmarked Naive (full history), Sliding Window ($K=6$), and Progressive Summarization across a 17-turn scripted dialogue (`RECALL_PROBE`) with an account reference token (`77042`) planted at turn 2. The Naive baseline recalled the token successfully but token cost escalated to 1,866 tokens on turn 17 ($O(N^2)$ cumulative trajectory). A 6-turn sliding window trimmed the final-turn cost by 45.8% (1,011 tokens) but suffered deterministic amnesia on early state. Progressive summarization reduced final-turn cost by 27.8% (1,348 tokens) across 2 auxiliary compression calls, but lost the exact reference token in lossy summarization without explicit entity retention.
+- **Session 20 (Function Calling):** Benchmarked function calling across a 10-scenario golden set (6 computational queries requiring banking tools, 4 conversational non-tool queries) across four operational guardrail modes (`none`, `prompt`, `validate`, `router`) on `gpt-oss-20b`. The unassisted baseline hallucinated loan figures, but tool registration enabled 10/10 final answer accuracy across all modes. Soft prompt guidance (`prompt`) suffered a regression on question `g3` (9/10 tool selection, 5/6 valid args, 17,710 tokens) due to negative instruction interference. In contrast, programmatic schema validation (`validate`) eliminated runtime type and boundary failures with zero token overhead (10/10 tools, 6/6 valid args, 17,306 tokens), while an upstream intent classifier (`router`) also achieved 10/10 tool precision at the cost of an 8.9% token surcharge (18,840 tokens).
 
 ---
 
@@ -73,5 +75,5 @@ Verify all module checkpoints offline:
 
 ```bash
 # Run all deterministic offline tests across Module 03:
-uv run pytest tests/test_s19.py -k "not live" -v
+uv run pytest tests/test_s19.py tests/test_s20.py -k "not live" -v
 ```
